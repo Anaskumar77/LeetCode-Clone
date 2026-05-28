@@ -1,11 +1,14 @@
 package com.leetcode.clone.Auth.dto;
 
+import java.util.UUID;
+
 import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotBlank;
 
 public class UpdateUserDto {
 
-    @Nullable()
-    private String id;
+    @NotBlank
+    private UUID id;
 
     @Nullable()
     private String name;
