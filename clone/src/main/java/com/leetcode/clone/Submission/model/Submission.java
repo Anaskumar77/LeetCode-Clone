@@ -19,6 +19,7 @@ public class Submission {
     private UUID id;
 
     private UUID problemId;
+    
     private UUID userId;
 
     @Column(columnDefinition = "TEXT")
@@ -30,6 +31,7 @@ public class Submission {
     private String status;       // ACCEPTED, WRONG_ANSWER, TLE, RUNTIME_ERROR
 
     private int totalTestCases;
+
     private int passedTestCases;
 
     private Long executionTimeMs;  // slowest test case time
@@ -38,5 +40,6 @@ public class Submission {
 
     // Individual test case results stored as JSON
     @OneToMany(mappedBy = "submission", cascade = CascadeType.ALL)
+
     private List<TestCaseResult> testCaseResults;
 }

@@ -1,5 +1,6 @@
 package com.leetcode.clone.Auth.model;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -34,9 +35,6 @@ public class UserModel {
     @Column(nullable = false)
     private RoleEntity role = RoleEntity.USER;
 
-    @Column(nullable = false)
-    private boolean enabled = true;
-
     @Column(nullable = true)
     private String imgUrl;
 
@@ -45,5 +43,29 @@ public class UserModel {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+
+    // ── Solving Stats 
+    private Integer totalSolved         = 0;
+    private Integer easySolved          = 0;
+    private Integer mediumSolved        = 0;
+    private Integer hardSolved          = 0;
+    private Integer totalPoints         = 0;
+
+    private Integer totalSubmissions    = 0;
+    private Integer acceptedSubmissions = 0;
+
+    // ── Streak
+    private Integer currentStreak       = 0;
+    private Integer maxStreak           = 0;
+
+    @Column(nullable = true)
+    private LocalDate lastSolvedDate;
+
+    // ── Ranking
+    @Column(nullable = true) 
+    private Integer globalRank;
+
+
 
 }

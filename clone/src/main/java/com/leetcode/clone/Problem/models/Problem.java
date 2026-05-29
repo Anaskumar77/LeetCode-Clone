@@ -1,9 +1,6 @@
 package com.leetcode.clone.Problem.models;
 
 import jakarta.persistence.Entity;
-
-
-
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.*;
