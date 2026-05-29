@@ -15,12 +15,16 @@ public class ExecutionResult {
     private String status;
 
     private String stdout;
+
     private String stderr;
 
     private Long executionTimeMs;
 
-    // per test case
+    private Long memoryUsageKb;   
+
     private boolean passed;
+
     private String expectedOutput;
+    
     private String actualOutput;
 }

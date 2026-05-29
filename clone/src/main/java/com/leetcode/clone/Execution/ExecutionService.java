@@ -1,6 +1,5 @@
 package com.leetcode.clone.Execution;
 
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -64,19 +63,25 @@ public class ExecutionService {
         // On Windows, convert C:\path to /c/path for Docker
         if (mountPath.contains(":\\")) {
             mountPath = "/" + String.valueOf(mountPath.charAt(0)).toLowerCase()
-        + mountPath.substring(2).replace("\\", "/");
+                    + mountPath.substring(2).replace("\\", "/");
         }
 
         ProcessBuilder pb = new ProcessBuilder(
                 "docker", "run",
-                "--rm",                          // remove container after run
-                "--network", "none",             // no internet access
-                "--memory", "128m",              // 128MB memory limit
-                "--cpus", "0.5",                 // half a CPU
-                "-v", mountPath + ":/code",      // mount temp dir
-                "-w", "/code",                   // working directory
+                "--rm",
+                "--network", "none",
+                "--memory", "128m",
+                "--cpus", "0.5",
+                "-v", mountPath + ":/code",
+                "-w", "/code",
                 DOCKER_IMAGE,
-                "sh", "-c", "python script.py < input.txt"
+                // /usr/bin/time -f '%M' prints peak memory in KB to stderr
+                // We use __MEM__ marker to separate it from actual program stderr
+                "sh", "-c",
+                "/usr/bin/time -f '__MEM__:%M' python script.py < input.txt 2>time_output.txt;" +
+                "EXIT_CODE=$?;" +
+                "cat time_output.txt >&2;" +
+                "exit $EXIT_CODE"
         );
 
         pb.redirectErrorStream(false);
@@ -103,15 +108,34 @@ public class ExecutionService {
         }
 
         String stdout = "";
-        String stderr = "";
+        String rawStderr = "";
 
         try {
             stdout = stdoutFuture.get(2, TimeUnit.SECONDS);
-            stderr = stderrFuture.get(2, TimeUnit.SECONDS);
+            rawStderr = stderrFuture.get(2, TimeUnit.SECONDS);
         } catch (ExecutionException | TimeoutException e) {
             log.warn("Could not read process output", e);
         }
 
+        // Parse memory usage from stderr
+        // /usr/bin/time outputs "__MEM__:1234" (peak KB) in stderr
+        Long memoryUsageKb = null;
+        StringBuilder cleanStderr = new StringBuilder();
+
+        for (String line : rawStderr.split("\n")) {
+            if (line.startsWith("__MEM__:")) {
+                try {
+                    memoryUsageKb = Long.parseLong(line.replace("__MEM__:", "").trim());
+                } catch (NumberFormatException e) {
+                    log.warn("Could not parse memory usage from: {}", line);
+                }
+            } else {
+                // Keep actual program error lines
+                cleanStderr.append(line).append("\n");
+            }
+        }
+
+        String stderr = cleanStderr.toString().trim();
         int exitCode = process.exitValue();
 
         // Runtime error
@@ -121,6 +145,7 @@ public class ExecutionService {
                     .stdout(stdout)
                     .stderr(stderr)
                     .executionTimeMs(executionTime)
+                    .memoryUsageKb(memoryUsageKb)
                     .passed(false)
                     .build();
         }
@@ -138,6 +163,7 @@ public class ExecutionService {
                 .stdout(stdout)
                 .stderr(stderr)
                 .executionTimeMs(executionTime)
+                .memoryUsageKb(memoryUsageKb)
                 .passed(passed)
                 .actualOutput(actualOutput)
                 .expectedOutput(expected)

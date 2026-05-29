@@ -15,8 +15,7 @@ public class ExecutionController {
     private final ExecutionService executionService;
 
     @PostMapping
-    public ResponseEntity<ExecutionResult> execute(@RequestBody ExecutionRequest
- request) {
+    public ResponseEntity<ExecutionResult> execute(@RequestBody ExecutionRequest request) {
         ExecutionResult result = executionService.execute(request);
         return ResponseEntity.ok(result);
     }
