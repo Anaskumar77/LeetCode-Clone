@@ -1,6 +1,9 @@
 package com.leetcode.clone.Auth.model;
-public enum RoleEntity {
+
+public enum RoleEnum {
+
     USER,
     ADMIN,
     ENGINEER
+
 }
