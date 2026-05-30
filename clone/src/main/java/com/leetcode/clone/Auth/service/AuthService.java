@@ -34,7 +34,7 @@ public class AuthService {
         ResponseUserDto responseUserDto = ResponseUserDto.builder()
                 .id(userRes.getId())
                 .email(userRes.getEmail())
-                .name(userRes.getName()).build();
+                .name(userRes.getName()).createdAt(userRes.getCreatedAt()).updatedAt(userRes.getUpdatedAt()).build();
 
         return new RegisterResponseDto(true, RegisterStatus.USER_CREATED, responseUserDto);
 

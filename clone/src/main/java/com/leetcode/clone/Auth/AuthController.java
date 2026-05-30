@@ -3,11 +3,12 @@ package com.leetcode.clone.Auth;
 import com.leetcode.clone.Auth.dto.CreateUserDto;
 import com.leetcode.clone.Auth.dto.LoginDto;
 import com.leetcode.clone.Auth.dto.RegisterResponseDto;
-import com.leetcode.clone.Auth.repository.UserRepository;
+// import com.leetcode.clone.Auth.repository.UserRepository;
 import com.leetcode.clone.Auth.service.AuthService;
 
 import lombok.RequiredArgsConstructor;
 
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,7 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequiredArgsConstructor
 class AuthController {
 
-    private final UserRepository userRepo;
+    // private final UserRepository userRepo;
 
     private final AuthService authService;
 
@@ -31,12 +32,12 @@ class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<RegisterResponseDto> register(@RequestBody CreateUserDto reqBody) {
+    public ResponseEntity<RegisterResponseDto> register(@Valid @RequestBody CreateUserDto reqBody) {
         return ResponseEntity.ok(authService.register(reqBody));
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody LoginDto loginDto) {
+    public String login(@Valid @RequestBody LoginDto loginDto) {
         return "Login";
     }
 

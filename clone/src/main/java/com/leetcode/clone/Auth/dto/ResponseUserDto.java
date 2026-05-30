@@ -1,5 +1,6 @@
 package com.leetcode.clone.Auth.dto;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import jakarta.annotation.Nullable;
@@ -27,9 +28,9 @@ public class ResponseUserDto {
     private String imgUrl;
 
     @Nullable
-    private String createdAt;
+    private LocalDateTime createdAt;
 
     @Nullable
-    private String updatedAt;
+    private LocalDateTime updatedAt;
 
 }

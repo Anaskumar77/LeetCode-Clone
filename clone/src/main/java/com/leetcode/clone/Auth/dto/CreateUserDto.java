@@ -7,16 +7,14 @@ import lombok.Data;
 @Data
 public class CreateUserDto {
 
-    @NotBlank
+    @NotBlank(message = "Name must include a value")
     private String name;
 
-    @NotBlank
-    @Email
+    @NotBlank(message = "Email must include a value")
+    @Email(message = "Invalid Email format")
     private String email;
-    
-    @NotBlank
+
+    @NotBlank(message = "Password must include a value")
     private String password;
-
-
 
 }
