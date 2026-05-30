@@ -1,10 +1,13 @@
 package com.leetcode.clone.Problem.dto;
 
-import lombok.Data;
-
-@Data
-public class CreateProblemDto {
-
-
-
+public record CreateProblemDto(
+        String title,
+        String slug,
+        String description,
+        DifficultyEnum difficulty,
+        int timeLimit,
+        int memoryLimit,
+        String starterCode,
+        String driverImports,
+        String driverCode) {
 }

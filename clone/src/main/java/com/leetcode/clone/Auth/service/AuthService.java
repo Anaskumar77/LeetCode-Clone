@@ -1,6 +1,5 @@
-package com.leetcode.clone.Auth;
+package com.leetcode.clone.Auth.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -15,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-class AuthService {
+public class AuthService {
 
     private final UserRepository userRepo;
 
@@ -26,10 +25,9 @@ class AuthService {
         if (userRepo.existsByEmail(userDto.getEmail())) {
             return new RegisterResponseDto(false, RegisterStatus.USER_ALREADY_EXISTS, null);
         }
-        UserEntity user = new UserEntity();
-        user.setEmail(userDto.getEmail());
-        user.setName(userDto.getName());
-        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        UserEntity user = UserEntity.builder()
+                .email(userDto.getEmail())
+                .name(userDto.getName()).password(passwordEncoder.encode(userDto.getPassword())).build();
 
         UserEntity userRes = userRepo.save(user);
 
@@ -41,5 +39,18 @@ class AuthService {
         return new RegisterResponseDto(true, RegisterStatus.USER_CREATED, responseUserDto);
 
     }
+
+    // public LoginResponseDto login(LoginDto loginDto) {
+
+    // if (!userRepo.existsByEmail(loginDto.getEmail())) {
+    // return new LoginResponseDto(false, RegisterStatus.USER_DOES_NOT_EXIST, null,
+    // null);
+    // }
+
+    // // create access and refresh token
+
+    // // return new LoginResponseDto(true,RegisterStatus.LOGIN_SUCCESSFULL,)
+
+    // }
 
 }

@@ -3,5 +3,8 @@ package com.leetcode.clone.Auth.dto;
 public enum RegisterStatus {
     USER_CREATED,
     USER_ALREADY_EXISTS,
-    REGISTRATION_FAILED
+    REGISTRATION_FAILED,
+    LOGIN_SUCCESSFULL,
+    LOGIN_FAILED,
+    USER_DOES_NOT_EXIST
 }

@@ -18,7 +18,7 @@ public class TestCase {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "problem_id")
-    private Problem problem;
+    private ProblemEntity problem;
 
     // JSON string sent as stdin to the script
     // Example: {"nums": [2, 7, 11, 15], "target": 9}
@@ -34,5 +34,5 @@ public class TestCase {
     // Hidden test cases are only used for final verdict
     private boolean isSample;
 
-    private int orderIndex;  // test case #1, #2, #3...
+    private int orderIndex; // test case #1, #2, #3...
 }

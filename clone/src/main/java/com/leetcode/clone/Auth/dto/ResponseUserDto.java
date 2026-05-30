@@ -5,6 +5,7 @@ import java.util.UUID;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 
@@ -12,7 +13,7 @@ import lombok.Data;
 @Builder
 public class ResponseUserDto {
 
-    @NotBlank
+    @NotNull
     private UUID id;
 
     @NotBlank

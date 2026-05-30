@@ -17,6 +17,12 @@ public class ExecutionService {
     private static final String DOCKER_IMAGE = "python:3.9-slim";
     private static final int DEFAULT_TIMEOUT_SECONDS = 5;
 
+    private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool(r -> {
+        Thread t = new Thread(r);
+        t.setDaemon(true);
+        return t;
+    });
+
     public ExecutionResult execute(ExecutionRequest request) {
         Path tempDir = null;
         try {
@@ -79,10 +85,9 @@ public class ExecutionService {
                 // We use __MEM__ marker to separate it from actual program stderr
                 "sh", "-c",
                 "/usr/bin/time -f '__MEM__:%M' python script.py < input.txt 2>time_output.txt;" +
-                "EXIT_CODE=$?;" +
-                "cat time_output.txt >&2;" +
-                "exit $EXIT_CODE"
-        );
+                        "EXIT_CODE=$?;" +
+                        "cat time_output.txt >&2;" +
+                        "exit $EXIT_CODE");
 
         pb.redirectErrorStream(false);
 
@@ -172,8 +177,7 @@ public class ExecutionService {
 
     // Read process stream asynchronously to avoid blocking
     private Future<String> readStreamAsync(InputStream inputStream) {
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        return executor.submit(() -> {
+        return EXECUTOR_SERVICE.submit(() -> {
             StringBuilder sb = new StringBuilder();
             try (BufferedReader reader = new BufferedReader(
                     new InputStreamReader(inputStream))) {

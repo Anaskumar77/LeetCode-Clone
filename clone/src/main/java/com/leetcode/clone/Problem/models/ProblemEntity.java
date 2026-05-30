@@ -1,0 +1,50 @@
+
+package com.leetcode.clone.Problem.models;
+
+import jakarta.persistence.*;
+import lombok.*;
+import java.util.*;
+
+import com.leetcode.clone.Problem.dto.DifficultyEnum;
+
+@Entity
+@Table(name = "problems")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ProblemEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    private String title;
+    private String slug;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Enumerated(EnumType.STRING)
+    private DifficultyEnum difficulty;
+
+    @Builder.Default
+    private int timeLimit = 5;
+
+    @Builder.Default
+    private int memoryLimit = 128;
+
+    @Column(columnDefinition = "TEXT")
+    private String starterCode;
+
+    @Column(columnDefinition = "TEXT")
+    private String driverImports;
+
+    @Column(columnDefinition = "TEXT")
+    private String driverCode;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<TestCase> testCases = new ArrayList<>();
+
+}

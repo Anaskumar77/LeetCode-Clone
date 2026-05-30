@@ -11,12 +11,7 @@ public class RegisterResponseDto {
 
     private boolean success;
 
-    private RegisterStatus message; 
-
+    private RegisterStatus message;
 
     private ResponseUserDto user;
 }
-
-
-
-

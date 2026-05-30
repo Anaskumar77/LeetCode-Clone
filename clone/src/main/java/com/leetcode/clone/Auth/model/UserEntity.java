@@ -16,11 +16,13 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "user")
+@Builder
+@Table(name = "users")
 public class UserEntity {
 
     @Id
@@ -39,6 +41,7 @@ public class UserEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     private RoleEnum role = RoleEnum.USER;
 
     @Column(nullable = true)
@@ -51,17 +54,26 @@ public class UserEntity {
     private LocalDateTime updatedAt;
 
     // ── Solving Stats
+    @Builder.Default
     private Integer totalSolved = 0;
+    @Builder.Default
     private Integer easySolved = 0;
+    @Builder.Default
     private Integer mediumSolved = 0;
+    @Builder.Default
     private Integer hardSolved = 0;
+    @Builder.Default
     private Integer totalPoints = 0;
 
+    @Builder.Default
     private Integer totalSubmissions = 0;
+    @Builder.Default
     private Integer acceptedSubmissions = 0;
 
     // ── Streak
+    @Builder.Default
     private Integer currentStreak = 0;
+    @Builder.Default
     private Integer maxStreak = 0;
 
     @Column(nullable = true)

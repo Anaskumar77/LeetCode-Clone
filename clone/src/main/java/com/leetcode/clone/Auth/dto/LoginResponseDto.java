@@ -5,21 +5,18 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class LoginResponseDto {
 
+    private Boolean success;
+
+    private RegisterStatus message;
+
     private String accessToken;
 
-    private String refreshToken;
-
-    private String tokenType;
-
-    private long expiresIn;
-    
     private ResponseUserDto user;
 
 }

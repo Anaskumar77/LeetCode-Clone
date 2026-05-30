@@ -4,9 +4,11 @@ import com.leetcode.clone.Auth.dto.CreateUserDto;
 import com.leetcode.clone.Auth.dto.LoginDto;
 import com.leetcode.clone.Auth.dto.RegisterResponseDto;
 import com.leetcode.clone.Auth.repository.UserRepository;
+import com.leetcode.clone.Auth.service.AuthService;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 class AuthController {
 
     private final UserRepository userRepo;
+
     private final AuthService authService;
 
     @GetMapping("/great")
@@ -28,23 +31,23 @@ class AuthController {
     }
 
     @PostMapping("/register")
-    public RegisterResponseDto Register(@RequestBody CreateUserDto createUserDto) {
-        return this.authService.register(createUserDto);
+    public ResponseEntity<RegisterResponseDto> register(@RequestBody CreateUserDto reqBody) {
+        return ResponseEntity.ok(authService.register(reqBody));
     }
 
     @PostMapping("/login")
-    public String Login(@RequestBody LoginDto loginDto) {
+    public String login(@RequestBody LoginDto loginDto) {
         return "Login";
     }
 
     @GetMapping("/me")
-    public String GetMethodName(@RequestParam String userId) {
+    public String me(@RequestParam String userId) {
         return "/me";
     }
 
     @PostMapping("/refresh")
-    public String Refresh(@RequestBody String entity) {
-        return "/refresh";
+    public String refresh(@RequestBody String entity) {
+        return "/refres";
     }
 
 }

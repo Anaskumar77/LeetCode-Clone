@@ -1,22 +1,24 @@
 package com.leetcode.clone.Submission;
 
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.leetcode.clone.Submission.dto.SubmissionDto;
 
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import lombok.RequiredArgsConstructor;
 
-
-@RestController("api/submission")
+@RestController
+@RequestMapping("/api/submission")
+@RequiredArgsConstructor
 public class SubmissionController {
 
-    private SubmissionService submissionService;
+    private final SubmissionService submissionService;
 
     @PostMapping("/")
     public String Submission(@RequestBody SubmissionDto submissionDto) {
-        return submissionService.Submit(submissionDto);
+        return submissionService.submit(submissionDto);
     }
-    
-    
+
 }

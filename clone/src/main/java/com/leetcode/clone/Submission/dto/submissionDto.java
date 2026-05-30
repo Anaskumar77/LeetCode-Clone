@@ -3,16 +3,17 @@ package com.leetcode.clone.Submission.dto;
 import java.util.UUID;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public class SubmissionDto {
 
-    @NotBlank
+    @NotNull
     public UUID problemId;
 
     @NotBlank
     public String sourceCode;
-    
-    @NotBlank
-    public Integer languageId ;
-    
+
+    @NotNull
+    public Integer languageId;
+
 }
