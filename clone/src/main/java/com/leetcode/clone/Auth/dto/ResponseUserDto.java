@@ -3,6 +3,8 @@ package com.leetcode.clone.Auth.dto;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.leetcode.clone.Auth.model.RoleEnum;
+
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -26,6 +28,9 @@ public class ResponseUserDto {
 
     @Nullable
     private String imgUrl;
+
+    @Nullable
+    private RoleEnum role;
 
     @Nullable
     private LocalDateTime createdAt;

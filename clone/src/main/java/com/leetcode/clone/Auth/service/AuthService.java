@@ -2,6 +2,7 @@ package com.leetcode.clone.Auth.service;
 
 
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.userdetails.User;
@@ -26,11 +27,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
-
-
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+
+    @Value("${admin.secret}")
+    private String adminSecret;
 
     private static final String REFRESH_TOKEN_COOKIE = "refreshToken";
     private final UserRepository userRepo;
@@ -40,20 +42,34 @@ public class AuthService {
 
     public RegisterResponseDto register(CreateUserDto userDto) {
 
+
         if (userRepo.existsByEmail(userDto.getEmail())) {
             return new RegisterResponseDto(false, RegisterStatus.USER_ALREADY_EXISTS, null);
-
         }
+
+        
+        
+         RoleEnum role = (userDto.getAdminSecret() != null && userDto.getAdminSecret().equals(adminSecret))
+            ? RoleEnum.ADMIN
+            : RoleEnum.USER;
+
         UserEntity user = UserEntity.builder()
                 .email(userDto.getEmail())
-                .name(userDto.getName()).password(passwordEncoder.encode(userDto.getPassword())).build();
+                .name(userDto.getName())
+                .password(passwordEncoder.encode(userDto.getPassword()))
+                .role(role)
+                .build();
 
         UserEntity userRes = userRepo.save(user);
 
         ResponseUserDto responseUserDto = ResponseUserDto.builder()
                 .id(userRes.getId())
                 .email(userRes.getEmail())
-                .name(userRes.getName()).createdAt(userRes.getCreatedAt()).updatedAt(userRes.getUpdatedAt()).build();
+                .name(userRes.getName())
+                .role(userRes.getRole())
+                .createdAt(userRes.getCreatedAt())
+                .updatedAt(userRes.getUpdatedAt())
+                .build();
 
         return new RegisterResponseDto(true, RegisterStatus.USER_CREATED, responseUserDto);
     }
@@ -87,6 +103,7 @@ public class AuthService {
                 .id(user.getId())
                 .email(user.getEmail())
                 .name(user.getName())
+                .role(user.getRole())
                 .imgUrl(user.getImgUrl())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())

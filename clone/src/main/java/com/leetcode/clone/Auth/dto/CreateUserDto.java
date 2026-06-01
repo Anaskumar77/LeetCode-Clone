@@ -17,4 +17,6 @@ public class CreateUserDto {
     @NotBlank(message = "Password must include a value")
     private String password;
 
+    private String adminSecret;
+
 }
