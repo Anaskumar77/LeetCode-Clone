@@ -3,14 +3,17 @@ package com.leetcode.clone.Auth;
 import com.leetcode.clone.Auth.dto.CreateUserDto;
 import com.leetcode.clone.Auth.dto.LoginDto;
 import com.leetcode.clone.Auth.dto.LoginResponseDto;
+import com.leetcode.clone.Auth.dto.RefreshTokenResponseDto;
 import com.leetcode.clone.Auth.dto.RegisterResponseDto;
 // import com.leetcode.clone.Auth.repository.UserRepository;
 import com.leetcode.clone.Auth.service.AuthService;
 
 import lombok.RequiredArgsConstructor;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -51,8 +54,14 @@ class AuthController {
     }
 
     @PostMapping("/refresh")
-    public String refresh(@RequestBody String entity) {
-        return "/refreshToken";
+    public ResponseEntity<RefreshTokenResponseDto> refresh(
+            HttpServletRequest request,
+            HttpServletResponse response) {
+        RefreshTokenResponseDto body = authService.refresh(request, response);
+        HttpStatus status = Boolean.TRUE.equals(body.getSuccess())
+                ? HttpStatus.OK
+                : HttpStatus.UNAUTHORIZED;
+        return ResponseEntity.status(status).body(body);
     }
 
 }

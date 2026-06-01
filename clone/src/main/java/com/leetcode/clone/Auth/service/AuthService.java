@@ -6,12 +6,14 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.leetcode.clone.Auth.dto.CreateUserDto;
 import com.leetcode.clone.Auth.dto.LoginDto;
 import com.leetcode.clone.Auth.dto.LoginResponseDto;
+import com.leetcode.clone.Auth.dto.RefreshTokenResponseDto;
 import com.leetcode.clone.Auth.dto.RegisterResponseDto;
 import com.leetcode.clone.Auth.dto.RegisterStatus;
 import com.leetcode.clone.Auth.dto.ResponseUserDto;
@@ -19,6 +21,8 @@ import com.leetcode.clone.Auth.model.RoleEnum;
 import com.leetcode.clone.Auth.model.UserEntity;
 import com.leetcode.clone.Auth.repository.UserRepository;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
@@ -32,6 +36,7 @@ public class AuthService {
     private final UserRepository userRepo;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final UserDetailsService userDetailsService;
 
     public RegisterResponseDto register(CreateUserDto userDto) {
 
@@ -52,6 +57,9 @@ public class AuthService {
 
         return new RegisterResponseDto(true, RegisterStatus.USER_CREATED, responseUserDto);
     }
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
     public LoginResponseDto login(LoginDto req, HttpServletResponse response) {
@@ -92,6 +100,71 @@ public class AuthService {
                 .build();
     }
 
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+    public RefreshTokenResponseDto refresh(HttpServletRequest request, HttpServletResponse response) {
+        String refreshToken = extractRefreshToken(request);
+        if (refreshToken == null || refreshToken.isBlank()) {
+            return failedRefresh(response);
+        }
+
+        try {
+            String email = jwtService.extractUsername(refreshToken);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
+            if (!jwtService.isTokenValid(refreshToken, userDetails)) {
+                return failedRefresh(response);
+            }
+
+            String accessToken = jwtService.generateToken(userDetails);
+            String newRefreshToken = jwtService.generateRefreshToken(userDetails);
+            setRefreshTokenCookie(response, newRefreshToken);
+
+            return RefreshTokenResponseDto.builder()
+                    .success(true)
+                    .message(RegisterStatus.REFRESH_TOKEN_SUCCESS)
+                    .accessToken(accessToken)
+                    .build();
+        } catch (Exception e) {
+            return failedRefresh(response);
+        }
+    }
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    private RefreshTokenResponseDto failedRefresh(HttpServletResponse response) {
+        clearRefreshTokenCookie(response);
+        return RefreshTokenResponseDto.builder()
+                .success(false)
+                .message(RegisterStatus.REFRESH_TOKEN_FAILED)
+                .build();
+    }
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+    private String extractRefreshToken(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return null;
+        }
+        for (Cookie cookie : cookies) {
+            if (REFRESH_TOKEN_COOKIE.equals(cookie.getName())) {
+                return cookie.getValue();
+            }
+        }
+        return null;
+    }
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
     private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
         ResponseCookie cookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE, refreshToken)
                 .httpOnly(true)
@@ -102,10 +175,18 @@ public class AuthService {
                 .build();
 
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
-
     }
 
-
+    private void clearRefreshTokenCookie(HttpServletResponse response) {
+        ResponseCookie cookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE, "")
+                .httpOnly(true)
+                .secure(false)
+                .path("/api/auth")
+                .maxAge(0)
+                .sameSite("Lax")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    }
 
 }
 
