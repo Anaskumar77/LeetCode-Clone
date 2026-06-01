@@ -5,6 +5,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import com.leetcode.clone.Auth.model.RoleEnum;
 import com.leetcode.clone.Auth.model.UserEntity;
 import com.leetcode.clone.Auth.repository.UserRepository;
 
@@ -21,10 +22,12 @@ public class CustomUserDetailsService implements UserDetailsService {
         UserEntity user = userRepository.findByEmail(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
+        RoleEnum role = user.getRole() != null ? user.getRole() : RoleEnum.USER;
+
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getEmail())
                 .password(user.getPassword())
-                .roles(user.getRole().name()) // e.g. "USER", "ADMIN"
+                .roles(role.name())
                 .build();
     }
 }

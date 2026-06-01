@@ -2,6 +2,7 @@ package com.leetcode.clone.Auth;
 
 import com.leetcode.clone.Auth.dto.CreateUserDto;
 import com.leetcode.clone.Auth.dto.LoginDto;
+import com.leetcode.clone.Auth.dto.LoginResponseDto;
 import com.leetcode.clone.Auth.dto.RegisterResponseDto;
 // import com.leetcode.clone.Auth.repository.UserRepository;
 import com.leetcode.clone.Auth.service.AuthService;
@@ -37,8 +38,8 @@ class AuthController {
     }
 
     @PostMapping("/login")
-    public String login(@Valid @RequestBody LoginDto loginDto) {
-        return "Login";
+    public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginDto loginDto) {
+        return ResponseEntity.ok(authService.login(loginDto));
     }
 
     @GetMapping("/me")
@@ -48,7 +49,7 @@ class AuthController {
 
     @PostMapping("/refresh")
     public String refresh(@RequestBody String entity) {
-        return "/refres";
+        return "/refreshToken";
     }
 
 }

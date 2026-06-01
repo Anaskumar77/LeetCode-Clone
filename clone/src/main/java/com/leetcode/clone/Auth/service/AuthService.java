@@ -1,12 +1,17 @@
 package com.leetcode.clone.Auth.service;
 
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.leetcode.clone.Auth.dto.CreateUserDto;
+import com.leetcode.clone.Auth.dto.LoginDto;
+import com.leetcode.clone.Auth.dto.LoginResponseDto;
 import com.leetcode.clone.Auth.dto.RegisterResponseDto;
 import com.leetcode.clone.Auth.dto.RegisterStatus;
 import com.leetcode.clone.Auth.dto.ResponseUserDto;
+import com.leetcode.clone.Auth.model.RoleEnum;
 import com.leetcode.clone.Auth.model.UserEntity;
 import com.leetcode.clone.Auth.repository.UserRepository;
 
@@ -19,6 +24,7 @@ public class AuthService {
     private final UserRepository userRepo;
 
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     public RegisterResponseDto register(CreateUserDto userDto) {
 
@@ -40,17 +46,39 @@ public class AuthService {
 
     }
 
-    // public LoginResponseDto login(LoginDto loginDto) {
+    public LoginResponseDto login(LoginDto req) {
+        UserEntity user = userRepo.findByEmail(req.getEmail()).orElse(null);
+        if (user == null || !passwordEncoder.matches(req.getPassword(), user.getPassword())) {
+            return LoginResponseDto.builder()
+                    .success(false)
+                    .message(RegisterStatus.LOGIN_FAILED)
+                    .build();
+        }
 
-    // if (!userRepo.existsByEmail(loginDto.getEmail())) {
-    // return new LoginResponseDto(false, RegisterStatus.USER_DOES_NOT_EXIST, null,
-    // null);
-    // }
+        RoleEnum role = user.getRole() != null ? user.getRole() : RoleEnum.USER;
+        UserDetails userDetails = User.builder()
+                .username(user.getEmail())
+                .password(user.getPassword())
+                .roles(role.name())
+                .build();
 
-    // // create access and refresh token
+        String accessToken = jwtService.generateToken(userDetails);
 
-    // // return new LoginResponseDto(true,RegisterStatus.LOGIN_SUCCESSFULL,)
+        ResponseUserDto responseUser = ResponseUserDto.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .name(user.getName())
+                .imgUrl(user.getImgUrl())
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
+                .build();
 
-    // }
+        return LoginResponseDto.builder()
+                .success(true)
+                .message(RegisterStatus.LOGIN_SUCCESSFULL)
+                .accessToken(accessToken)
+                .user(responseUser)
+                .build();
+    }
 
 }
