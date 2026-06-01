@@ -9,6 +9,7 @@ import com.leetcode.clone.Auth.service.AuthService;
 
 import lombok.RequiredArgsConstructor;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,8 +39,10 @@ class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginDto loginDto) {
-        return ResponseEntity.ok(authService.login(loginDto));
+    public ResponseEntity<LoginResponseDto> login(
+            @Valid @RequestBody LoginDto loginDto,
+            HttpServletResponse response) {
+        return ResponseEntity.ok(authService.login(loginDto, response));
     }
 
     @GetMapping("/me")

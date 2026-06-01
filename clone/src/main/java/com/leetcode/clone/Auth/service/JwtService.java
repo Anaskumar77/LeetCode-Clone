@@ -24,19 +24,34 @@ public class JwtService {
     @Value("${jwt.expiration}") // e.g. 86400000 (1 day in ms)
     private long expiration;
 
+    @Value("${jwt.refresh-expiration}") // e.g. 604800000 (7 days in ms)
+    private long refreshExpiration;
+
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateToken(UserDetails userDetails) {
+        return buildToken(userDetails, expiration);
+    }
+
+    public String generateRefreshToken(UserDetails userDetails) {
+        return buildToken(userDetails, refreshExpiration);
+    }
+
+    private String buildToken(UserDetails userDetails, long ttlMs) {
         return Jwts.builder()
                 .subject(userDetails.getUsername())
                 .claim("roles", userDetails.getAuthorities()
                         .stream().map(GrantedAuthority::getAuthority).toList())
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .expiration(new Date(System.currentTimeMillis() + ttlMs))
                 .signWith(getSigningKey())
                 .compact();
+    }
+
+    public long getRefreshExpirationSeconds() {
+        return refreshExpiration / 1000;
     }
 
     public String extractUsername(String token) {

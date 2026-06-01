@@ -1,5 +1,9 @@
 package com.leetcode.clone.Auth.service;
 
+
+
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,14 +19,17 @@ import com.leetcode.clone.Auth.model.RoleEnum;
 import com.leetcode.clone.Auth.model.UserEntity;
 import com.leetcode.clone.Auth.repository.UserRepository;
 
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+
+
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
+    private static final String REFRESH_TOKEN_COOKIE = "refreshToken";
     private final UserRepository userRepo;
-
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
@@ -30,6 +37,7 @@ public class AuthService {
 
         if (userRepo.existsByEmail(userDto.getEmail())) {
             return new RegisterResponseDto(false, RegisterStatus.USER_ALREADY_EXISTS, null);
+
         }
         UserEntity user = UserEntity.builder()
                 .email(userDto.getEmail())
@@ -43,13 +51,14 @@ public class AuthService {
                 .name(userRes.getName()).createdAt(userRes.getCreatedAt()).updatedAt(userRes.getUpdatedAt()).build();
 
         return new RegisterResponseDto(true, RegisterStatus.USER_CREATED, responseUserDto);
-
     }
 
-    public LoginResponseDto login(LoginDto req) {
+
+    public LoginResponseDto login(LoginDto req, HttpServletResponse response) {
         UserEntity user = userRepo.findByEmail(req.getEmail()).orElse(null);
         if (user == null || !passwordEncoder.matches(req.getPassword(), user.getPassword())) {
-            return LoginResponseDto.builder()
+ 
+                return LoginResponseDto.builder()
                     .success(false)
                     .message(RegisterStatus.LOGIN_FAILED)
                     .build();
@@ -63,6 +72,8 @@ public class AuthService {
                 .build();
 
         String accessToken = jwtService.generateToken(userDetails);
+        String refreshToken = jwtService.generateRefreshToken(userDetails);
+        setRefreshTokenCookie(response, refreshToken);
 
         ResponseUserDto responseUser = ResponseUserDto.builder()
                 .id(user.getId())
@@ -81,4 +92,20 @@ public class AuthService {
                 .build();
     }
 
+    private void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
+        ResponseCookie cookie = ResponseCookie.from(REFRESH_TOKEN_COOKIE, refreshToken)
+                .httpOnly(true)
+                .secure(false)
+                .path("/api/auth")
+                .maxAge(jwtService.getRefreshExpirationSeconds())
+                .sameSite("Lax")
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+    }
+
+
+
 }
+
