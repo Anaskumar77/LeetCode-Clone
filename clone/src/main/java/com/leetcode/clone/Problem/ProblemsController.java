@@ -1,13 +1,16 @@
 package com.leetcode.clone.Problem;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.leetcode.clone.Problem.dto.CreateProblemResponseDto;
 import com.leetcode.clone.Problem.dto.ProblemResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -19,12 +22,21 @@ public class ProblemsController {
 
     private final ProblemService problemService;
 
-    @GetMapping("/")
+    @GetMapping()
     public ResponseEntity<List<ProblemResponse>> getProblems(
             @RequestParam(required = false) String difficulty,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int count) {
         return ResponseEntity.ok(problemService.getProblems(page, count, difficulty));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ProblemResponse> getSpecificProblem(@PathVariable UUID id) {
+
+        System.out.println("\n\n\n\n\n\n\n\nController reached!\n\n\n\n\nn\\n\n");
+
+        return ResponseEntity.ok(problemService.getSpecificProblem(id));
+
     }
 
 }

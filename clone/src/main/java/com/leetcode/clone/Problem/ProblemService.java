@@ -107,8 +107,6 @@ public class ProblemService {
                 .build();
     }
 
-
-
     public List<ProblemResponse> getProblems(int page, int size, String difficulty) {
 
         Pageable pageable = PageRequest.of(page, size);
@@ -118,7 +116,7 @@ public class ProblemService {
             problems = problemRepo.findAll(pageable);
         } else {
             DifficultyEnum difficultyEnum = DifficultyEnum.valueOf(difficulty.trim().toUpperCase());
-            
+
             problems = problemRepo.findByDifficulty(difficultyEnum, pageable);
         }
 
@@ -128,7 +126,14 @@ public class ProblemService {
 
     }
 
+    public ProblemResponse getSpecificProblem(UUID id) {
 
+        ProblemEntity problem = problemRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Problem not found"));
+
+        return toProblemResponse(problem);
+
+    }
 
     private ProblemResponse toProblemResponse(ProblemEntity entity) {
 
@@ -145,13 +150,9 @@ public class ProblemService {
 
     }
 
-
-
     public String deleteProblem(UUID id) {
         return "hello";
     }
-
-
 
     public AddTestCaseResponseDto addTestCases(CreateTestCaseDto req) {
         try {
@@ -203,8 +204,6 @@ public class ProblemService {
         }
     }
 
-
-
     public String deleteTestCase(UUID id) {
         return "hello";
     }
@@ -240,4 +239,3 @@ public class ProblemService {
     }
 
 }
-

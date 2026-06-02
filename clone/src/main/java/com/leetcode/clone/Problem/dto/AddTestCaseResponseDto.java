@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AddTestCaseResponseDto {
-
     private boolean success;
     private ProblemStatus message;
     private String error;
