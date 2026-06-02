@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,50 +16,95 @@ import com.leetcode.clone.Problem.dto.CreateTestCaseDto;
 import com.leetcode.clone.Problem.dto.DifficultyEnum;
 import com.leetcode.clone.Problem.dto.ProblemResponse;
 import com.leetcode.clone.Problem.dto.ProblemStatus;
+import com.leetcode.clone.Problem.dto.AddTestCaseResponseDto;
+import com.leetcode.clone.Problem.dto.TestCaseResponse;
 import com.leetcode.clone.Problem.models.ProblemEntity;
+import com.leetcode.clone.Problem.models.TestCase;
 import com.leetcode.clone.Problem.repository.ProblemRepository;
+import com.leetcode.clone.Problem.repository.TestCaseRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProblemService {
 
     private final ProblemRepository problemRepo;
-    public CreateProblemResponseDto createProblem(CreateProblemDto req) {
+    private final TestCaseRepository testCaseRepo;
 
-        if (problemRepo.existsBySlug(req.slug())) {
-            return CreateProblemResponseDto.builder()
-                    .success(false)
-                    .message(ProblemStatus.PROBLEM_ALREADY_EXISTS)
-                    .problem(null)
+    public CreateProblemResponseDto createProblem(CreateProblemDto req) {
+        try {
+            String validationError = validateCreateRequest(req);
+            if (validationError != null) {
+                log.warn("Invalid create problem request: {}", validationError);
+                return failure(ProblemStatus.INVALID_REQUEST, validationError);
+            }
+
+            if (problemRepo.existsBySlug(req.slug())) {
+                log.warn("Duplicate problem slug rejected: {}", req.slug());
+                return failure(ProblemStatus.PROBLEM_ALREADY_EXISTS,
+                        "A problem with slug '" + req.slug() + "' already exists");
+            }
+
+            ProblemEntity problem = ProblemEntity.builder()
+                    .title(req.title())
+                    .slug(req.slug())
+                    .description(req.description())
+                    .difficulty(req.difficulty())
+                    .timeLimit(req.timeLimit())
+                    .memoryLimit(req.memoryLimit())
+                    .starterCode(req.starterCode())
+                    .driverImports(req.driverImports())
+                    .driverCode(req.driverCode())
+                    .testCases(new ArrayList<>())
                     .build();
 
+            ProblemEntity saved = problemRepo.save(problem);
+            log.info("Problem created successfully: id={}, slug={}", saved.getId(), saved.getSlug());
+
+            return CreateProblemResponseDto.builder()
+                    .success(true)
+                    .message(ProblemStatus.PROBLEM_CREATED)
+                    .problem(toProblemResponse(saved))
+                    .build();
+
+        } catch (DataIntegrityViolationException ex) {
+            log.warn("Duplicate problem constraint violation for slug={}", req.slug(), ex);
+            return failure(ProblemStatus.PROBLEM_ALREADY_EXISTS,
+                    "A problem with slug '" + req.slug() + "' already exists");
+
+        } catch (Exception ex) {
+            log.error("Unexpected error while creating problem slug={}", req != null ? req.slug() : null, ex);
+            return failure(ProblemStatus.PROBLEM_CREATION_FAILED,
+                    "An unexpected error occurred while creating the problem");
         }
+    }
 
-        ProblemEntity problem = ProblemEntity.builder()
-                .title(req.title())
-                .slug(req.slug())
-                .description(req.description())
-                .difficulty(req.difficulty())
-                .timeLimit(req.timeLimit())
-                .memoryLimit(req.memoryLimit())
-                .starterCode(req.starterCode())
-                .driverImports(req.driverImports())
-                .driverCode(req.driverCode())
-                .testCases(new ArrayList<>())
-                .build();
+    private String validateCreateRequest(CreateProblemDto req) {
+        if (req == null) {
+            return "Request body is required";
+        }
+        if (req.title() == null || req.title().isBlank()) {
+            return "Title is required";
+        }
+        if (req.slug() == null || req.slug().isBlank()) {
+            return "Slug is required";
+        }
+        if (req.difficulty() == null) {
+            return "Difficulty is required";
+        }
+        return null;
+    }
 
-        ProblemEntity repoRes = problemRepo.save(problem);
-
+    private CreateProblemResponseDto failure(ProblemStatus status, String error) {
         return CreateProblemResponseDto.builder()
-                .success(true)
-                .message(ProblemStatus.PROBLEM_CREATED)
-                .problem(toProblemResponse(repoRes))
+                .success(false)
+                .message(status)
+                .error(error)
+                .problem(null)
                 .build();
-
     }
 
 
@@ -107,14 +153,90 @@ public class ProblemService {
 
 
 
-    public String addTestCases(CreateTestCaseDto testCaseDto) {
-        return "hello";
+    public AddTestCaseResponseDto addTestCases(CreateTestCaseDto req) {
+        try {
+            String validationError = validateTestCaseRequest(req);
+            if (validationError != null) {
+                log.warn("Invalid add test case request: {}", validationError);
+                return AddTestCaseResponseDto.builder()
+                        .success(false)
+                        .message(ProblemStatus.INVALID_REQUEST)
+                        .error(validationError)
+                        .build();
+            }
+
+            ProblemEntity problem = problemRepo.findById(req.getProblem()).orElse(null);
+            if (problem == null) {
+                log.warn("Add test case failed: problem not found id={}", req.getProblem());
+                return AddTestCaseResponseDto.builder()
+                        .success(false)
+                        .message(ProblemStatus.PROBLEM_NOT_FOUND)
+                        .error("Problem not found for id: " + req.getProblem())
+                        .build();
+            }
+
+            TestCase testCase = TestCase.builder()
+                    .problem(problem)
+                    .input(req.getInput())
+                    .expectedOutput(req.getExpectedOutput())
+                    .isSample(req.isSample())
+                    .orderIndex(req.getOrderIndex())
+                    .build();
+
+            TestCase saved = testCaseRepo.save(testCase);
+            log.info("Test case added: id={}, problemId={}, orderIndex={}",
+                    saved.getId(), problem.getId(), saved.getOrderIndex());
+
+            return AddTestCaseResponseDto.builder()
+                    .success(true)
+                    .message(ProblemStatus.TEST_CASE_ADDED)
+                    .testCase(toTestCaseResponse(saved))
+                    .build();
+        } catch (Exception ex) {
+            log.error("Unexpected error while adding test case for problem={}",
+                    req != null ? req.getProblem() : null, ex);
+            return AddTestCaseResponseDto.builder()
+                    .success(false)
+                    .message(ProblemStatus.TEST_CASE_CREATION_FAILED)
+                    .error("An unexpected error occurred while creating the test case")
+                    .build();
+        }
     }
 
 
 
     public String deleteTestCase(UUID id) {
         return "hello";
+    }
+
+    private String validateTestCaseRequest(CreateTestCaseDto req) {
+        if (req == null) {
+            return "Request body is required";
+        }
+        if (req.getProblem() == null) {
+            return "problem is required";
+        }
+        if (req.getInput() == null || req.getInput().isBlank()) {
+            return "input is required";
+        }
+        if (req.getExpectedOutput() == null || req.getExpectedOutput().isBlank()) {
+            return "expectedOutput is required";
+        }
+        if (req.getOrderIndex() < 0) {
+            return "orderIndex must be greater than or equal to 0";
+        }
+        return null;
+    }
+
+    private TestCaseResponse toTestCaseResponse(TestCase entity) {
+        return TestCaseResponse.builder()
+                .id(entity.getId())
+                .problemId(entity.getProblem().getId())
+                .input(entity.getInput())
+                .expectedOutput(entity.getExpectedOutput())
+                .isSample(entity.isSample())
+                .orderIndex(entity.getOrderIndex())
+                .build();
     }
 
 }

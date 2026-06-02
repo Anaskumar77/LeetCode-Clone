@@ -2,14 +2,17 @@ package com.leetcode.clone.Problem.dto;
 
 import java.util.UUID;
 
-import jakarta.validation.constraints.NotBlank;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+import lombok.Data;
+
+@Data
 public class CreateTestCaseDto {
 
-    @NotBlank
-    private UUID id;
-
-    @NotBlank
+    @NotNull
     private UUID problem;
 
     @NotBlank
@@ -18,10 +21,10 @@ public class CreateTestCaseDto {
     @NotBlank
     private String expectedOutput;
 
-    @NotBlank
+    @JsonProperty("isSample")
     private boolean isSample;
 
-    @NotBlank
+    @PositiveOrZero
     private int orderIndex; 
 }
 

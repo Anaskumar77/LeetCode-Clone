@@ -19,11 +19,12 @@ public class ProblemsController {
 
     private final ProblemService problemService;
 
-    @GetMapping
+    @GetMapping("/")
     public ResponseEntity<List<ProblemResponse>> getProblems(
             @RequestParam(required = false) String difficulty,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int count) {
         return ResponseEntity.ok(problemService.getProblems(page, count, difficulty));
     }
+
 }

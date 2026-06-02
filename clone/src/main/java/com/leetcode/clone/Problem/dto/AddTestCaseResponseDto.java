@@ -9,14 +9,10 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateProblemResponseDto {
+public class AddTestCaseResponseDto {
 
     private boolean success;
-
     private ProblemStatus message;
-
     private String error;
-
-    private ProblemResponse problem;
-
+    private TestCaseResponse testCase;
 }
