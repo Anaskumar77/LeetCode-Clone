@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.leetcode.clone.Problem.dto.CreateProblemResponseDto;
 import com.leetcode.clone.Problem.dto.ProblemResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -30,13 +29,12 @@ public class ProblemsController {
         return ResponseEntity.ok(problemService.getProblems(page, count, difficulty));
     }
 
+    ////////////////////////////////////////////////////////////////////////////////////
+
     @GetMapping("/{id}")
     public ResponseEntity<ProblemResponse> getSpecificProblem(@PathVariable UUID id) {
 
-        System.out.println("\n\n\n\n\n\n\n\nController reached!\n\n\n\n\nn\\n\n");
-
         return ResponseEntity.ok(problemService.getSpecificProblem(id));
-
     }
 
 }

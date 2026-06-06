@@ -12,8 +12,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ExecutionRequest {
 
-    private String sourceCode;   // user's Python code
-    private String stdin;        // input for the program
+    private String sourceCode; // user's Python code
+    private String stdin; // input for the program
     private String expectedOutput; // expected output for verdict
     private int timeLimitSeconds; // default 5
-} 
+}
