@@ -1,6 +1,7 @@
 package com.leetcode.clone.Execution;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.leetcode.clone.Execution.dto.ExecutionRequest;
@@ -14,7 +15,13 @@ import java.util.concurrent.*;
 @Service
 public class ExecutionService {
 
-    private static final String DOCKER_IMAGE = "python:3.9-slim";
+    @Value("${leetcode.execution.shared-path:}")
+    private String sharedPath;
+
+    @Value("${leetcode.execution.volume-name:}")
+    private String volumeName;
+
+    private static final String DOCKER_IMAGE = "leetcode-python-runner:latest";
     private static final int DEFAULT_TIMEOUT_SECONDS = 5;
 
     private static final ExecutorService EXECUTOR_SERVICE = Executors.newCachedThreadPool(r -> {
@@ -27,7 +34,15 @@ public class ExecutionService {
         Path tempDir = null;
         try {
             // 1. Create a temp directory to hold the script and input
-            tempDir = Files.createTempDirectory("judge_");
+            if (sharedPath != null && !sharedPath.trim().isEmpty()) {
+                Path parentDir = Paths.get(sharedPath);
+                if (!Files.exists(parentDir)) {
+                    Files.createDirectories(parentDir);
+                }
+                tempDir = Files.createTempDirectory(parentDir, "judge_");
+            } else {
+                tempDir = Files.createTempDirectory("judge_");
+            }
 
             // 2. Write user code to script.py
             Path scriptFile = tempDir.resolve("script.py");
@@ -72,14 +87,24 @@ public class ExecutionService {
                     + mountPath.substring(2).replace("\\", "/");
         }
 
+        String volumeMount;
+        String workDir;
+        if (volumeName != null && !volumeName.trim().isEmpty()) {
+            volumeMount = volumeName + ":/code";
+            workDir = "/code/" + tempDir.getFileName().toString();
+        } else {
+            volumeMount = mountPath + ":/code";
+            workDir = "/code";
+        }
+
         ProcessBuilder pb = new ProcessBuilder(
                 "docker", "run",
                 "--rm",
                 "--network", "none",
                 "--memory", "128m",
                 "--cpus", "0.5",
-                "-v", mountPath + ":/code",
-                "-w", "/code",
+                "-v", volumeMount,
+                "-w", workDir,
                 DOCKER_IMAGE,
                 // /usr/bin/time -f '%M' prints peak memory in KB to stderr
                 // We use __MEM__ marker to separate it from actual program stderr

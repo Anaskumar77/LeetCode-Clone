@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: leetcode_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: leetcode
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./clone
+      dockerfile: Dockerfile
+    container_name: leetcode_backend
+    ports:
+      - "8080:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/leetcode
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - LEETCODE_EXECUTION_SHARED_PATH=/app/shared
+      - LEETCODE_EXECUTION_VOLUME_NAME=leetcode_shared_data
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - leetcode_shared_data:/app/shared
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./FrontEnd/leetcode_clone
+      dockerfile: Dockerfile
+    container_name: leetcode_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  python-runner:
+    build:
+      context: ./clone
+      dockerfile: Dockerfile.python-runner
+    image: leetcode-python-runner:latest
+    container_name: leetcode_python_runner
+    entrypoint: ["echo", "python-runner image built successfully"]
+
+
+volumes:
+  postgres_data:
+  leetcode_shared_data:
+    name: leetcode_shared_data
