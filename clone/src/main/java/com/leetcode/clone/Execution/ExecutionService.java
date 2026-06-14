@@ -110,9 +110,9 @@ public class ExecutionService {
                 // We use __MEM__ marker to separate it from actual program stderr
                 "sh", "-c",
                 "/usr/bin/time -f '__MEM__:%M' python script.py < input.txt 2>time_output.txt;" +
-                "EXIT_CODE=$?;" +
-                "cat time_output.txt >&2;" +
-                "exit $EXIT_CODE");
+                        "EXIT_CODE=$?;" +
+                        "cat time_output.txt >&2;" +
+                        "exit $EXIT_CODE");
 
         pb.redirectErrorStream(false);
 

@@ -1,10 +1,13 @@
+import Login    from './pages/Login/Login'
+import Register from './pages/Register/Register'
 import './App.css'
-import ProblemSet from './pages/PoblemSet/ProblemSet'
+
+// Temporary routing — replace with react-router when ready
+const page = window.location.pathname;
 
 function App() {
-  return (
-    <ProblemSet />
-  )
+  if (page === '/register') return <Register />;
+  return <Login />;
 }
 
 export default App
