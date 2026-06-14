@@ -25,6 +25,7 @@ public class GlobalExceptionHandler {
      * "name": "Name must include a value"
      * }
      */
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationErrors(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();

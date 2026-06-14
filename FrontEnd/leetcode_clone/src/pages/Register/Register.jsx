@@ -3,9 +3,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import { registerUser, clearError } from '../../store/slices/userSlice';
 import '../../styles/auth.css';
 import mascot from '../../assets/auth_mascot.png';
+import { useNavigate } from 'react-router-dom';
 
 export default function Register() {
     const dispatch = useDispatch();
+
+    const navigate = useNavigate()
     const { loading, error: reduxError } = useSelector((s) => s.user);
 
     const [form, setForm] = useState({
@@ -52,7 +55,7 @@ export default function Register() {
         if (registerUser.fulfilled.match(result)) {
             setSuccess(true);
             // Redirect to login after short delay so user sees success message
-            setTimeout(() => { window.location.href = '/login'; }, 1500);
+            setTimeout(() => { navigate('/problems'); }, 1000);
         }
     };
 

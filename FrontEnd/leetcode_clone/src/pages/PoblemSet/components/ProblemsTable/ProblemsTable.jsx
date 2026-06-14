@@ -1,6 +1,16 @@
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchProblems } from '../../../../store/slices/problemsSlice';
 import './ProblemsTable.css';
 
 export default function ProblemsTable() {
+  const dispatch = useDispatch();
+  const { list: problems, loading, error } = useSelector((state) => state.problems);
+
+  useEffect(() => {
+    dispatch(fetchProblems({ page: 0, count: 10 }));
+  }, [dispatch]);
+
   return (
     <section className="lc-section lc-section-problems" id="problems-list">
       <div className="lc-section-label">Problems</div>
@@ -45,25 +55,35 @@ export default function ProblemsTable() {
         </div>
 
         {/* Rows */}
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="lc-table-row">
+        {loading && <div className="lc-table-row" style={{ padding: '20px', color: 'var(--text)' }}>Loading problems...</div>}
+        {error && <div className="lc-table-row" style={{ padding: '20px', color: 'red' }}>Error: {error}</div>}
+        {!loading && !error && problems.length === 0 && (
+          <div className="lc-table-row" style={{ padding: '20px', color: 'var(--text)' }}>No problems found.</div>
+        )}
+        {!loading && !error && problems.map((problem) => (
+          <div key={problem.id} className="lc-table-row">
             <div className="wf-col wf-col-status">
               <div className="wf-status-dot" />
             </div>
             <div className="wf-col wf-col-title">
-              <div className="wf-row-title" style={{ width: `${55 + (i % 4) * 10}%` }} />
+              <span style={{ color: 'var(--text)', cursor: 'pointer' }}>{problem.title}</span>
             </div>
             <div className="wf-col wf-col-acc">
-              <div className="wf-text-sm" />
+              <span style={{ color: 'var(--text)', fontSize: '14px' }}>
+                {problem.acceptanceRate ? `${problem.acceptanceRate}%` : '-'}
+              </span>
             </div>
             <div className="wf-col wf-col-diff">
-              <div className="wf-diff-badge" />
+              <span style={{ 
+                color: problem.difficulty === 'Easy' ? '#00b8a3' : problem.difficulty === 'Medium' ? '#ffc01e' : '#ff375f',
+                fontSize: '14px'
+              }}>
+                {problem.difficulty}
+              </span>
             </div>
             <div className="wf-col wf-col-lock">
-              <div className="wf-icon-xs" />
             </div>
             <div className="wf-col wf-col-fav">
-              <div className="wf-icon-xs" />
             </div>
           </div>
         ))}
