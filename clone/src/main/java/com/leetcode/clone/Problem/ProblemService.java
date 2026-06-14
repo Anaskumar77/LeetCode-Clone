@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.leetcode.clone.Problem.dto.CategoryCountDto;
 import com.leetcode.clone.Problem.dto.CreateProblemDto;
 import com.leetcode.clone.Problem.dto.CreateProblemResponseDto;
 import com.leetcode.clone.Problem.dto.CreateTestCaseDto;
@@ -58,6 +59,7 @@ public class ProblemService {
                     .starterCode(req.starterCode())
                     .driverImports(req.driverImports())
                     .driverCode(req.driverCode())
+                    .categories(req.categories() != null ? req.categories() : new ArrayList<>())
                     .testCases(new ArrayList<>())
                     .build();
 
@@ -107,6 +109,10 @@ public class ProblemService {
                 .build();
     }
 
+    public List<CategoryCountDto> getCategoryCounts() {
+        return problemRepo.countProblemsByCategory();
+    }
+
     public List<ProblemResponse> getProblems(int page, int size, String difficulty) {
 
         Pageable pageable = PageRequest.of(page, size);
@@ -146,6 +152,7 @@ public class ProblemService {
                 .timeLimit(entity.getTimeLimit())
                 .memoryLimit(entity.getMemoryLimit())
                 .starterCode(entity.getStarterCode())
+                .categories(entity.getCategories())
                 .build();
 
     }

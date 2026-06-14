@@ -4,6 +4,8 @@ import java.util.UUID;
 
 import lombok.Builder;
 
+import java.util.List;
+
 @Builder
 public record ProblemResponse(
         UUID id,
@@ -13,5 +15,6 @@ public record ProblemResponse(
         DifficultyEnum difficulty,
         int timeLimit,
         int memoryLimit,
-        String starterCode) {
+        String starterCode,
+        List<String> categories) {
 }

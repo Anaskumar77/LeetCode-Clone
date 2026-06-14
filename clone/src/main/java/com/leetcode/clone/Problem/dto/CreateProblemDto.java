@@ -3,6 +3,8 @@ package com.leetcode.clone.Problem.dto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+import java.util.List;
+
 public record CreateProblemDto(
         @NotBlank(message = "Title is required")
         String title,
@@ -15,5 +17,6 @@ public record CreateProblemDto(
         int memoryLimit,
         String starterCode,
         String driverImports,
-        String driverCode) {
+        String driverCode,
+        List<String> categories) {
 }

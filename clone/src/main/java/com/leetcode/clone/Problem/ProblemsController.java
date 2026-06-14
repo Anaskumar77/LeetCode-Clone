@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.leetcode.clone.Problem.dto.CategoryCountDto;
 import com.leetcode.clone.Problem.dto.ProblemResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,11 @@ public class ProblemsController {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////
+
+    @GetMapping("/categories")
+    public ResponseEntity<List<CategoryCountDto>> getCategoryCounts() {
+        return ResponseEntity.ok(problemService.getCategoryCounts());
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<ProblemResponse> getSpecificProblem(@PathVariable UUID id) {

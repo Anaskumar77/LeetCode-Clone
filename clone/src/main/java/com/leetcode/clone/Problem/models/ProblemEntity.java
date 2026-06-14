@@ -47,4 +47,10 @@ public class ProblemEntity {
     @OneToMany(mappedBy = "problem", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<TestCase> testCases = new ArrayList<>();
 
+    @Builder.Default
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "problem_categories", joinColumns = @JoinColumn(name = "problem_id"))
+    @Column(name = "category")
+    private List<String> categories = new ArrayList<>();
+
 }
