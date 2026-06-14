@@ -1,0 +1,60 @@
+/* ════════════════════════════════════
+   ProblemSet Page — Layout Shell Only
+   All component styles live in their
+   own component CSS files.
+════════════════════════════════════ */
+@import '../../styles/wireframe.css';
+
+.lc-root {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  zoom: 1.25;
+}
+
+.lc-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.lc-main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+/* ── Shared section wrapper ── */
+.lc-section {
+  border: 1px solid var(--outline);
+  border-radius: var(--radius);
+  padding: 12px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Section label badge (top-left notch) */
+.lc-section-label {
+  position: absolute;
+  top: -10px;
+  left: 14px;
+  background: var(--bg);
+  padding: 0 8px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--outline-label);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid var(--outline);
+  border-radius: 4px;
+  white-space: nowrap;
+}

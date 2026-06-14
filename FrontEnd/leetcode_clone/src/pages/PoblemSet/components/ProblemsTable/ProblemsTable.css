@@ -1,0 +1,59 @@
+@import '../../../../styles/wireframe.css';
+
+.lc-section-problems {
+  margin-top: 8px;
+}
+
+.lc-topic-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.lc-filter-tabs {
+  display: flex;
+  gap: 6px;
+  border-bottom: 1px solid var(--outline-dim);
+  padding-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.lc-controls-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.lc-controls-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lc-table {
+  border: 1px solid var(--outline);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.lc-table-header {
+  display: flex;
+  align-items: center;
+  background: rgba(58, 138, 110, 0.08);
+  border-bottom: 1px solid var(--outline);
+  padding: 10px 12px;
+  gap: 8px;
+}
+
+.lc-table-row {
+  display: flex;
+  align-items: center;
+  padding: 12px 12px;
+  gap: 8px;
+  border-bottom: 1px solid var(--outline-dim);
+}
+.lc-table-row:last-child { border-bottom: none; }
+.lc-table-row:hover { background: rgba(58, 138, 110, 0.05); }

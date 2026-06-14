@@ -1,12 +1,9 @@
-import { useState } from 'react'
 import './App.css'
+import ProblemSet from './pages/PoblemSet/ProblemSet'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-    </>
+    <ProblemSet />
   )
 }
 

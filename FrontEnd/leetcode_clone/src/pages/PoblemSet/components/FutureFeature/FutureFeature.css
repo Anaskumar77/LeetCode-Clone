@@ -1,0 +1,15 @@
+@import '../../../../styles/wireframe.css';
+
+.lc-section-future {
+  min-height: 160px;
+  border-style: dashed;
+  margin-top: 8px;
+}
+
+.lc-future-placeholder {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+}

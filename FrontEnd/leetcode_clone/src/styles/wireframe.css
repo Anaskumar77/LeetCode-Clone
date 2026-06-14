@@ -1,0 +1,229 @@
+/* ════════════════════════════════════════════
+   SHARED WIREFRAME PRIMITIVES
+   Import this in any component that needs wf-* classes
+════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:           #1a1a1a;
+  --surface:      #222222;
+  --outline:      #3a8a6e;
+  --outline-dim:  rgba(58,138,110,0.35);
+  --outline-label:#3a8a6e;
+  --text:         #cccccc;
+  --today:        rgba(58,138,110,0.3);
+  --active-tab:   rgba(58,138,110,0.2);
+  --radius:       6px;
+}
+
+/* ── Generic box ── */
+.wf-box {
+  border: 1px solid var(--outline);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+/* ── Cards ── */
+.wf-card {
+  border: 1px solid var(--outline);
+  border-radius: var(--radius);
+  background: var(--surface);
+  min-height: 80px;
+}
+.wf-card-right {
+  border: 1px solid var(--outline);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+.wf-card-partial { flex: 0.4; opacity: 0.5; }
+
+/* ── Chips & Tags ── */
+.wf-chip {
+  height: 28px; width: 72px;
+  border: 1px solid var(--outline);
+  border-radius: 14px;
+  background: var(--surface);
+}
+.wf-topic-tag {
+  height: 24px; width: 80px;
+  border: 1px solid var(--outline);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.wf-expand-btn {
+  height: 24px; width: 70px;
+  border: 1px solid var(--outline-dim);
+  border-radius: 12px;
+  background: transparent;
+}
+
+/* ── Tabs ── */
+.wf-tab {
+  height: 32px; width: 90px;
+  border: 1px solid var(--outline-dim);
+  border-radius: 4px 4px 0 0;
+  background: transparent;
+}
+.wf-tab-active {
+  border-color: var(--outline);
+  background: var(--active-tab);
+  border-bottom-color: transparent;
+}
+.wf-tab-more {
+  height: 32px; width: 32px;
+  border: 1px solid var(--outline-dim);
+  border-radius: 4px;
+}
+
+/* ── Search / Inputs ── */
+.wf-search-bar {
+  height: 32px; width: 180px;
+  border: 1px solid var(--outline);
+  border-radius: 16px;
+  background: var(--surface);
+}
+.wf-search-problems { flex: 1; width: auto; min-width: 0; }
+
+/* ── Buttons ── */
+.wf-sort-btn,
+.wf-filter-btn {
+  height: 32px; width: 36px;
+  border: 1px solid var(--outline-dim);
+  border-radius: var(--radius);
+  background: transparent;
+  flex-shrink: 0;
+}
+.wf-solved-count {
+  height: 20px; width: 90px;
+  border: 1px solid var(--outline-dim);
+  border-radius: 10px;
+  background: transparent;
+}
+.wf-premium-btn {
+  height: 30px; width: 84px;
+  border: 1px solid var(--outline);
+  border-radius: 14px;
+  background: rgba(58,138,110,0.12);
+}
+
+/* ── Icons ── */
+.wf-icon-btn {
+  width: 30px; height: 30px;
+  border: 1px solid var(--outline-dim);
+  border-radius: 50%;
+  background: transparent;
+}
+.wf-icon-xs {
+  width: 18px; height: 18px;
+  border: 1px solid var(--outline-dim);
+  border-radius: 4px;
+  background: transparent;
+  flex-shrink: 0;
+}
+.wf-lock-icon {
+  width: 14px; height: 14px;
+  border: 1px solid var(--outline-dim);
+  border-radius: 3px;
+  background: transparent;
+  flex-shrink: 0;
+}
+
+/* ── Sidebar icons / labels ── */
+.wf-side-icon {
+  width: 18px; height: 18px;
+  border: 1px solid var(--outline);
+  border-radius: 4px;
+  background: transparent;
+  flex-shrink: 0;
+}
+.wf-side-label {
+  flex: 1; height: 12px;
+  border: 1px solid var(--outline-dim);
+  border-radius: 3px;
+  background: transparent;
+}
+.wf-new-badge {
+  width: 28px; height: 14px;
+  border: 1px solid var(--outline);
+  border-radius: 7px;
+  background: rgba(58,138,110,0.15);
+  flex-shrink: 0;
+}
+
+/* ── Text placeholders ── */
+.wf-text-sm {
+  height: 10px; width: 60px;
+  border: 1px solid var(--outline-dim);
+  border-radius: 3px;
+  background: transparent;
+}
+.wf-grow { flex: 1; }
+
+/* ── Table elements ── */
+.wf-col         { display: flex; align-items: center; }
+.wf-col-status  { width: 40px; flex-shrink: 0; justify-content: center; }
+.wf-col-title   { flex: 1; min-width: 0; }
+.wf-col-acc     { width: 80px; flex-shrink: 0; }
+.wf-col-diff    { width: 80px; flex-shrink: 0; }
+.wf-col-lock    { width: 32px; flex-shrink: 0; justify-content: center; }
+.wf-col-fav     { width: 32px; flex-shrink: 0; justify-content: center; }
+.wf-status-dot {
+  width: 14px; height: 14px;
+  border: 1px solid var(--outline);
+  border-radius: 50%;
+  background: transparent;
+}
+.wf-row-title {
+  height: 12px;
+  border: 1px solid var(--outline-dim);
+  border-radius: 3px;
+  background: transparent;
+}
+.wf-diff-badge {
+  height: 20px; width: 56px;
+  border: 1px solid var(--outline-dim);
+  border-radius: 10px;
+  background: transparent;
+}
+
+/* ── Right sidebar elements ── */
+.wf-day-info    { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.wf-day-nav     { display: flex; gap: 4px; }
+.wf-streak-badge {
+  width: 36px; height: 36px;
+  border: 1px solid var(--outline);
+  border-radius: 50%;
+  background: transparent;
+  flex-shrink: 0;
+}
+.wf-cal-header  { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; margin-top: 2px; }
+.wf-cal-day-name{ height: 10px; border: 1px solid var(--outline-dim); border-radius: 2px; }
+.wf-cal-grid    { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; margin-top: 2px; }
+.wf-cal-cell    { aspect-ratio: 1; border: 1px solid var(--outline-dim); border-radius: 3px; background: transparent; }
+.wf-cal-today   { border-color: var(--outline); background: var(--today); }
+
+.wf-week-tabs   { display: flex; gap: 4px; }
+.wf-week-tab    { flex: 1; height: 24px; border: 1px solid var(--outline-dim); border-radius: 4px; background: transparent; }
+.wf-week-tab-active { border-color: var(--outline); background: var(--active-tab); }
+
+.wf-premium-row { display: flex; align-items: center; gap: 6px; }
+.wf-dot-green   { width: 8px; height: 8px; border-radius: 50%; border: 1px solid var(--outline); background: rgba(58,138,110,0.4); flex-shrink: 0; }
+
+.wf-company-search { height: 26px; border: 1px solid var(--outline-dim); border-radius: 13px; background: transparent; }
+.wf-company-grid   { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.wf-company-chip   { height: 22px; border: 1px solid var(--outline-dim); border-radius: 4px; background: transparent; }
+
+/* ── Future feature ── */
+.wf-future-inner {
+  width: 60%; height: 60px;
+  border: 2px dashed var(--outline-dim);
+  border-radius: var(--radius);
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--outline-dim); border-radius: 3px; }

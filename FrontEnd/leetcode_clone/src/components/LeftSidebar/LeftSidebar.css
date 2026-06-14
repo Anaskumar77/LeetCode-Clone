@@ -1,0 +1,41 @@
+@import '../../styles/wireframe.css';
+
+.lc-sidebar-left {
+  width: 160px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--outline);
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+}
+
+.lc-side-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lc-side-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  border: 1px dashed var(--outline-dim);
+  position: relative;
+}
+
+.lc-side-divider {
+  height: 1px;
+  background: var(--outline-dim);
+  margin: 8px 0;
+}
+
+.lc-side-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+}
