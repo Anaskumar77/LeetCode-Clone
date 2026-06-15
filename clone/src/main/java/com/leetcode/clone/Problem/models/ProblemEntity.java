@@ -52,5 +52,4 @@ public class ProblemEntity {
     @CollectionTable(name = "problem_categories", joinColumns = @JoinColumn(name = "problem_id"))
     @Column(name = "category")
     private List<String> categories = new ArrayList<>();
-
 }
