@@ -193,7 +193,14 @@ public class ProblemService {
     }
 
     public String deleteProblem(UUID id) {
-        return "hello";
+        if (!problemRepo.existsById(id)) {
+            log.warn("Delete problem failed: problem not found id={}", id);
+            throw new ProblemNotFoundException("Problem not found for id: " + id);
+        }
+
+        problemRepo.deleteById(id);
+        log.info("Problem deleted successfully: id={}", id);
+        return "Problem deleted successfully";
     }
 
     public AddTestCaseResponseDto addTestCases(CreateTestCaseDto req) {

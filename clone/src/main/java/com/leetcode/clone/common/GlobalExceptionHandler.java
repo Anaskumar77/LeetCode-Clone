@@ -9,6 +9,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.leetcode.clone.Problem.ProblemNotFoundException;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -35,5 +37,13 @@ public class GlobalExceptionHandler {
 
         log.warn("Request validation failed: {}", errors);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+    }
+
+    @ExceptionHandler(ProblemNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleProblemNotFound(ProblemNotFoundException ex) {
+        log.warn("Problem not found: {}", ex.getMessage());
+        Map<String, String> error = new HashMap<>();
+        error.put("error", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 }

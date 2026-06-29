@@ -1,5 +1,6 @@
 package com.leetcode.clone.Problem;
 
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
@@ -52,10 +53,9 @@ public class AdminProblemController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public String deleteProblem(@PathVariable UUID id) {
-
-        return problemService.deleteProblem(id);
-
+    public ResponseEntity<Map<String, String>> deleteProblem(@PathVariable UUID id) {
+        String message = problemService.deleteProblem(id);
+        return ResponseEntity.ok(Map.of("message", message));
     }
 
     @PostMapping("/test-case")
