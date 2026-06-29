@@ -1,5 +1,6 @@
 package com.leetcode.clone.Problem;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -66,9 +67,17 @@ public class AdminProblemController {
     }
 
     @PostMapping("/test-case")
-    @PreAuthorize("hasRole('ADMIN')") // only ADMIN can create problems
-    public ResponseEntity<AddTestCaseResponseDto> addTestCases(@Valid @RequestBody CreateTestCaseDto req) {
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<AddTestCaseResponseDto> addTestCase(@Valid @RequestBody CreateTestCaseDto req) {
         AddTestCaseResponseDto body = problemService.addTestCases(req);
+        return ResponseEntity.status(resolveTestCaseStatus(body)).body(body);
+    }
+
+    @PostMapping("/test-cases/bulk")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<AddTestCaseResponseDto> addTestCasesBulk(
+            @RequestBody List<@Valid CreateTestCaseDto> req) {
+        AddTestCaseResponseDto body = problemService.addTestCasesBulk(req);
         return ResponseEntity.status(resolveTestCaseStatus(body)).body(body);
     }
 

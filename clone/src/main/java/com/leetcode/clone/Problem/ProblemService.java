@@ -264,6 +264,75 @@ public class ProblemService {
         return "hello";
     }
 
+    @Transactional
+    public AddTestCaseResponseDto addTestCasesBulk(List<CreateTestCaseDto> requests) {
+        if (requests == null || requests.isEmpty()) {
+            return AddTestCaseResponseDto.builder()
+                    .success(false)
+                    .message(ProblemStatus.INVALID_REQUEST)
+                    .error("Request list must not be empty")
+                    .build();
+        }
+
+        // Validate each item upfront before touching the DB
+        for (int i = 0; i < requests.size(); i++) {
+            String error = validateTestCaseRequest(requests.get(i));
+            if (error != null) {
+                log.warn("Bulk add test case: validation failed at index {}: {}", i, error);
+                return AddTestCaseResponseDto.builder()
+                        .success(false)
+                        .message(ProblemStatus.INVALID_REQUEST)
+                        .error("Item at index " + i + ": " + error)
+                        .build();
+            }
+        }
+
+        // Resolve problem once — all items must share the same problemId
+        UUID problemId = requests.get(0).getProblem();
+        ProblemEntity problem = problemRepo.findById(problemId).orElse(null);
+        if (problem == null) {
+            log.warn("Bulk add test case failed: problem not found id={}", problemId);
+            return AddTestCaseResponseDto.builder()
+                    .success(false)
+                    .message(ProblemStatus.PROBLEM_NOT_FOUND)
+                    .error("Problem not found for id: " + problemId)
+                    .build();
+        }
+
+        try {
+            List<TestCase> testCases = requests.stream()
+                    .map(req -> TestCase.builder()
+                            .problem(problem)
+                            .input(req.getInput())
+                            .expectedOutput(req.getExpectedOutput())
+                            .isSample(req.isSample())
+                            .orderIndex(req.getOrderIndex())
+                            .build())
+                    .toList();
+
+            List<TestCase> saved = testCaseRepo.saveAll(testCases);
+            log.info("Bulk test case add: {} test cases saved for problemId={}", saved.size(), problemId);
+
+            List<TestCaseResponse> responses = saved.stream()
+                    .map(this::toTestCaseResponse)
+                    .toList();
+
+            return AddTestCaseResponseDto.builder()
+                    .success(true)
+                    .message(ProblemStatus.TEST_CASE_ADDED)
+                    .testCases(responses)
+                    .build();
+
+        } catch (Exception ex) {
+            log.error("Unexpected error during bulk test case save for problemId={}", problemId, ex);
+            return AddTestCaseResponseDto.builder()
+                    .success(false)
+                    .message(ProblemStatus.TEST_CASE_CREATION_FAILED)
+                    .error("An unexpected error occurred while saving test cases")
+                    .build();
+        }
+    }
+
     private String validateTestCaseRequest(CreateTestCaseDto req) {
         if (req == null) {
             return "Request body is required";

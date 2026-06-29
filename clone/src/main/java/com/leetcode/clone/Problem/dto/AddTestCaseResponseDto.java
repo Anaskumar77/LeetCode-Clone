@@ -1,5 +1,7 @@
 package com.leetcode.clone.Problem.dto;
 
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,5 +15,6 @@ public class AddTestCaseResponseDto {
     private boolean success;
     private ProblemStatus message;
     private String error;
-    private TestCaseResponse testCase;
+    private TestCaseResponse testCase;           // single
+    private List<TestCaseResponse> testCases;   // bulk
 }
