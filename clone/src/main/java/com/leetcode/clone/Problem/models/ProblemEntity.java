@@ -37,6 +37,15 @@ public class ProblemEntity {
     @Column(columnDefinition = "TEXT")
     private String starterCode;
 
+    // ─── Function Signature (for auto driver code generation) ───
+    private String functionName; // e.g. "twoSum"
+    private String returnType;   // e.g. "int[]", "ListNode", "bool"
+
+    // JSON array of ParamDto: [{"name":"nums","type":"int[]"},{"name":"target","type":"int"}]
+    @Column(columnDefinition = "TEXT")
+    private String params;
+
+    // ─── Driver code (auto-generated or manual override) ───
     @Column(columnDefinition = "TEXT")
     private String driverImports;
 

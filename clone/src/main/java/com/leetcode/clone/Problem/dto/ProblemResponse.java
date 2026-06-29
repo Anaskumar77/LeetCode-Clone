@@ -16,5 +16,12 @@ public record ProblemResponse(
         int timeLimit,
         int memoryLimit,
         String starterCode,
+        // Function signature for auto driver code generation
+        String functionName,
+        String returnType,
+        List<ParamDto> params,
+        // Manual override driver code (if set on the problem)
+        String driverImports,
+        String driverCode,
         List<String> categories) {
-}
+}

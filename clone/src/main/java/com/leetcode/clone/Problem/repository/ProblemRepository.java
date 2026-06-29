@@ -21,4 +21,7 @@ public interface ProblemRepository extends JpaRepository<ProblemEntity, UUID> {
     @Query("SELECT new com.leetcode.clone.Problem.dto.CategoryCountDto(c, COUNT(p)) FROM ProblemEntity p JOIN p.categories c GROUP BY c")
     List<CategoryCountDto> countProblemsByCategory();
 
+    @Query("SELECT DISTINCT c FROM ProblemEntity p JOIN p.categories c")
+    List<String> findAllDistinctCategories();
+
 }

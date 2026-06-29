@@ -1,5 +1,6 @@
 package com.leetcode.clone.Execution;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -13,7 +14,10 @@ import java.util.concurrent.*;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class ExecutionService {
+
+    private final DriverCodeGenerator driverCodeGenerator;
 
     @Value("${leetcode.execution.shared-path:}")
     private String sharedPath;
@@ -44,11 +48,45 @@ public class ExecutionService {
                 tempDir = Files.createTempDirectory("judge_");
             }
 
-            // 2. Write user code to script.py
-            Path scriptFile = tempDir.resolve("script.py");
-            Files.writeString(scriptFile, request.getSourceCode());
+            // 2. Resolve driver code:
+            //    Priority 1: Manual driverCode on request (override)
+            //    Priority 2: Auto-generate from function signature
+            //    Priority 3: Raw stdin/stdout mode (no driver code)
+            String resolvedDriverImports = request.getDriverImports();
+            String resolvedDriverCode    = request.getDriverCode();
 
-            // 3. Write stdin to input.txt
+            if ((resolvedDriverCode == null || resolvedDriverCode.isBlank())
+                    && request.getFunctionName() != null && !request.getFunctionName().isBlank()
+                    && request.getParams() != null && !request.getParams().isEmpty()) {
+                // Auto-generate from function signature
+                DriverCodeGenerator.GeneratedDriver generated = driverCodeGenerator.generate(
+                        request.getFunctionName(),
+                        request.getParams(),
+                        request.getReturnType());
+                resolvedDriverImports = generated.driverImports;
+                resolvedDriverCode    = generated.driverCode;
+            }
+
+            // 3. Assemble script.py: driverImports + user code + driverCode
+            Path scriptFile = tempDir.resolve("script.py");
+            StringBuilder fullScript = new StringBuilder();
+
+            // Part 1: Driver imports (ListNode, TreeNode class definitions)
+            if (resolvedDriverImports != null && !resolvedDriverImports.isBlank()) {
+                fullScript.append(resolvedDriverImports).append("\n\n");
+            }
+
+            // Part 2: User's Solution class
+            fullScript.append(request.getSourceCode()).append("\n\n");
+
+            // Part 3: Driver harness (parse input → call Solution → print result)
+            if (resolvedDriverCode != null && !resolvedDriverCode.isBlank()) {
+                fullScript.append(resolvedDriverCode).append("\n");
+            }
+
+            Files.writeString(scriptFile, fullScript.toString());
+
+            // 4. Write stdin to input.txt
             Path inputFile = tempDir.resolve("input.txt");
             String stdin = request.getStdin() != null ? request.getStdin() : "";
             Files.writeString(inputFile, stdin);
@@ -57,7 +95,7 @@ public class ExecutionService {
                     ? request.getTimeLimitSeconds()
                     : DEFAULT_TIMEOUT_SECONDS;
 
-            // 4. Run Docker container
+            // 5. Run Docker container
             return runInDocker(tempDir, timeout, request.getExpectedOutput());
 
         } catch (Exception e) {
@@ -68,7 +106,7 @@ public class ExecutionService {
                     .passed(false)
                     .build();
         } finally {
-            // 5. Cleanup temp directory
+            // 6. Cleanup temp directory
             if (tempDir != null) {
                 deleteDirectory(tempDir.toFile());
             }

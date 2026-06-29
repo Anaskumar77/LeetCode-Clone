@@ -1,6 +1,7 @@
 package com.leetcode.clone.Problem;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -10,11 +11,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.leetcode.clone.Problem.dto.CategoryCountDto;
 import com.leetcode.clone.Problem.dto.CreateProblemDto;
 import com.leetcode.clone.Problem.dto.CreateProblemResponseDto;
 import com.leetcode.clone.Problem.dto.CreateTestCaseDto;
 import com.leetcode.clone.Problem.dto.DifficultyEnum;
+import com.leetcode.clone.Problem.dto.ParamDto;
 import com.leetcode.clone.Problem.dto.ProblemResponse;
 import com.leetcode.clone.Problem.dto.ProblemStatus;
 import com.leetcode.clone.Problem.dto.AddTestCaseResponseDto;
@@ -34,6 +38,7 @@ public class ProblemService {
 
     private final ProblemRepository problemRepo;
     private final TestCaseRepository testCaseRepo;
+    private final ObjectMapper objectMapper;
 
     public CreateProblemResponseDto createProblem(CreateProblemDto req) {
         try {
@@ -49,6 +54,16 @@ public class ProblemService {
                         "A problem with slug '" + req.slug() + "' already exists");
             }
 
+            // Serialize params list to JSON string for storage
+            String paramsJson = null;
+            if (req.params() != null && !req.params().isEmpty()) {
+                try {
+                    paramsJson = objectMapper.writeValueAsString(req.params());
+                } catch (Exception e) {
+                    log.warn("Could not serialize params: {}", e.getMessage());
+                }
+            }
+
             ProblemEntity problem = ProblemEntity.builder()
                     .title(req.title())
                     .slug(req.slug())
@@ -57,6 +72,9 @@ public class ProblemService {
                     .timeLimit(req.timeLimit())
                     .memoryLimit(req.memoryLimit())
                     .starterCode(req.starterCode())
+                    .functionName(req.functionName())
+                    .returnType(req.returnType())
+                    .params(paramsJson)
                     .driverImports(req.driverImports())
                     .driverCode(req.driverCode())
                     .categories(req.categories() != null ? req.categories() : new ArrayList<>())
@@ -113,6 +131,10 @@ public class ProblemService {
         return problemRepo.countProblemsByCategory();
     }
 
+    public List<String> getAllCategories() {
+        return problemRepo.findAllDistinctCategories();
+    }
+
     public List<ProblemResponse> getProblems(int page, int size, String difficulty) {
 
         Pageable pageable = PageRequest.of(page, size);
@@ -142,6 +164,15 @@ public class ProblemService {
     }
 
     private ProblemResponse toProblemResponse(ProblemEntity entity) {
+        // Deserialize params JSON string back to List<ParamDto>
+        List<ParamDto> paramsList = Collections.emptyList();
+        if (entity.getParams() != null && !entity.getParams().isBlank()) {
+            try {
+                paramsList = objectMapper.readValue(entity.getParams(), new TypeReference<List<ParamDto>>() {});
+            } catch (Exception e) {
+                log.warn("Could not deserialize params for problem {}: {}", entity.getId(), e.getMessage());
+            }
+        }
 
         return ProblemResponse.builder()
                 .id(entity.getId())
@@ -152,9 +183,13 @@ public class ProblemService {
                 .timeLimit(entity.getTimeLimit())
                 .memoryLimit(entity.getMemoryLimit())
                 .starterCode(entity.getStarterCode())
+                .functionName(entity.getFunctionName())
+                .returnType(entity.getReturnType())
+                .params(paramsList)
+                .driverImports(entity.getDriverImports())
+                .driverCode(entity.getDriverCode())
                 .categories(entity.getCategories())
                 .build();
-
     }
 
     public String deleteProblem(UUID id) {

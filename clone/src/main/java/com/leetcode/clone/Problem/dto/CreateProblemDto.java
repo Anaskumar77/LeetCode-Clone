@@ -16,6 +16,11 @@ public record CreateProblemDto(
         int timeLimit,
         int memoryLimit,
         String starterCode,
+        // Function signature for auto driver code generation
+        String functionName,
+        String returnType,
+        List<ParamDto> params,
+        // Optional manual override — if set, takes priority over auto-generation
         String driverImports,
         String driverCode,
         List<String> categories) {
