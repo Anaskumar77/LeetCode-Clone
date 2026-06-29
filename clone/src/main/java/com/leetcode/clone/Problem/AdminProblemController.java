@@ -58,6 +58,13 @@ public class AdminProblemController {
         return ResponseEntity.ok(Map.of("message", message));
     }
 
+    @DeleteMapping("/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, String>> deleteAllProblems() {
+        problemService.deleteAll();
+        return ResponseEntity.ok(Map.of("message", "All problems deleted successfully"));
+    }
+
     @PostMapping("/test-case")
     @PreAuthorize("hasRole('ADMIN')") // only ADMIN can create problems
     public ResponseEntity<AddTestCaseResponseDto> addTestCases(@Valid @RequestBody CreateTestCaseDto req) {
