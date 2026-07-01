@@ -1,6 +1,5 @@
 package com.leetcode.clone.Problem;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -14,14 +13,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.leetcode.clone.Problem.dto.BulkTestCaseUploadDto;
 import com.leetcode.clone.Problem.dto.CreateProblemDto;
 import com.leetcode.clone.Problem.dto.CreateProblemResponseDto;
-import com.leetcode.clone.Problem.dto.CreateTestCaseDto;
 import com.leetcode.clone.Problem.dto.AddTestCaseResponseDto;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-
 
 @RestController
 @RequestMapping("/api/admin/problems")
@@ -36,7 +34,7 @@ public class AdminProblemController {
         System.out.print(req);
         CreateProblemResponseDto body = problemService.createProblem(req);
         return ResponseEntity.status(resolveCreateProblemStatus(body)).body(body);
-        
+
     }
 
     private HttpStatus resolveCreateProblemStatus(CreateProblemResponseDto body) {
@@ -50,7 +48,6 @@ public class AdminProblemController {
             default -> HttpStatus.BAD_REQUEST;
         };
     }
-
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -68,19 +65,10 @@ public class AdminProblemController {
 
     @PostMapping("/test-case")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<AddTestCaseResponseDto> addTestCase(@Valid @RequestBody CreateTestCaseDto req) {
-        AddTestCaseResponseDto body = problemService.addTestCases(req);
-        return ResponseEntity.status(resolveTestCaseStatus(body)).body(body);
-    }
-
-    @PostMapping("/test-cases/bulk")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<AddTestCaseResponseDto> addTestCasesBulk(
-            @RequestBody List<@Valid CreateTestCaseDto> req) {
+    public ResponseEntity<AddTestCaseResponseDto> addTestCase(@Valid @RequestBody BulkTestCaseUploadDto req) {
         AddTestCaseResponseDto body = problemService.addTestCasesBulk(req);
         return ResponseEntity.status(resolveTestCaseStatus(body)).body(body);
     }
-
 
     @DeleteMapping("/test-case/{id}")
     @PreAuthorize("hasRole('ADMIN')")

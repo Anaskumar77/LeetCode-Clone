@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.leetcode.clone.Problem.dto.AddTestCaseResponseDto;
+import com.leetcode.clone.Problem.dto.BulkTestCaseUploadDto;
 import com.leetcode.clone.Problem.dto.CategoryCountDto;
 import com.leetcode.clone.Problem.dto.CreateProblemDto;
 import com.leetcode.clone.Problem.dto.CreateProblemResponseDto;
@@ -22,7 +24,7 @@ import com.leetcode.clone.Problem.dto.DifficultyEnum;
 import com.leetcode.clone.Problem.dto.ParamDto;
 import com.leetcode.clone.Problem.dto.ProblemResponse;
 import com.leetcode.clone.Problem.dto.ProblemStatus;
-import com.leetcode.clone.Problem.dto.AddTestCaseResponseDto;
+import com.leetcode.clone.Problem.dto.TestCaseItemDto;
 import com.leetcode.clone.Problem.dto.TestCaseResponse;
 import com.leetcode.clone.Problem.models.ProblemEntity;
 import com.leetcode.clone.Problem.models.TestCase;
@@ -262,6 +264,92 @@ public class ProblemService {
 
     public String deleteTestCase(UUID id) {
         return "hello";
+    }
+
+    /**
+     * Accepts a single JSON body containing a problem UUID and a list of test cases.
+     */
+    @Transactional
+    public AddTestCaseResponseDto addTestCasesBulk(BulkTestCaseUploadDto upload) {
+        if (upload == null || upload.getTestCases() == null || upload.getTestCases().isEmpty()) {
+            return AddTestCaseResponseDto.builder()
+                    .success(false)
+                    .message(ProblemStatus.INVALID_REQUEST)
+                    .error("Request must contain a problem ID and at least one test case")
+                    .build();
+        }
+
+        UUID problemId = upload.getProblem();
+        ProblemEntity problem = problemRepo.findById(problemId).orElse(null);
+        if (problem == null) {
+            log.warn("Bulk add test case failed: problem not found id={}", problemId);
+            return AddTestCaseResponseDto.builder()
+                    .success(false)
+                    .message(ProblemStatus.PROBLEM_NOT_FOUND)
+                    .error("Problem not found for id: " + problemId)
+                    .build();
+        }
+
+        // Validate each item before touching the DB
+        List<TestCaseItemDto> items = upload.getTestCases();
+        for (int i = 0; i < items.size(); i++) {
+            TestCaseItemDto item = items.get(i);
+            if (item.getInput() == null || item.getInput().isBlank()) {
+                return AddTestCaseResponseDto.builder()
+                        .success(false)
+                        .message(ProblemStatus.INVALID_REQUEST)
+                        .error("Item at index " + i + ": input is required")
+                        .build();
+            }
+            if (item.getExpectedOutput() == null || item.getExpectedOutput().isBlank()) {
+                return AddTestCaseResponseDto.builder()
+                        .success(false)
+                        .message(ProblemStatus.INVALID_REQUEST)
+                        .error("Item at index " + i + ": expectedOutput is required")
+                        .build();
+            }
+            if (item.getOrderIndex() < 0) {
+                return AddTestCaseResponseDto.builder()
+                        .success(false)
+                        .message(ProblemStatus.INVALID_REQUEST)
+                        .error("Item at index " + i + ": orderIndex must be >= 0")
+                        .build();
+            }
+        }
+
+        try {
+            ProblemEntity finalProblem = problem;
+            List<TestCase> testCases = items.stream()
+                    .map(item -> TestCase.builder()
+                            .problem(finalProblem)
+                            .input(item.getInput())
+                            .expectedOutput(item.getExpectedOutput())
+                            .isSample(item.isSample())
+                            .orderIndex(item.getOrderIndex())
+                            .build())
+                    .toList();
+
+            List<TestCase> saved = testCaseRepo.saveAll(testCases);
+            log.info("Bulk test case add: {} test cases saved for problemId={}", saved.size(), problemId);
+
+            List<TestCaseResponse> responses = saved.stream()
+                    .map(this::toTestCaseResponse)
+                    .toList();
+
+            return AddTestCaseResponseDto.builder()
+                    .success(true)
+                    .message(ProblemStatus.TEST_CASE_ADDED)
+                    .testCases(responses)
+                    .build();
+
+        } catch (Exception ex) {
+            log.error("Unexpected error during bulk test case save for problemId={}", problemId, ex);
+            return AddTestCaseResponseDto.builder()
+                    .success(false)
+                    .message(ProblemStatus.TEST_CASE_CREATION_FAILED)
+                    .error("An unexpected error occurred while saving test cases")
+                    .build();
+        }
     }
 
     @Transactional
