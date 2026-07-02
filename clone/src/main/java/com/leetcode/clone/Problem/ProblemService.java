@@ -423,6 +423,16 @@ public class ProblemService {
         }
     }
 
+    public List<TestCaseResponse> getTestCasesForProblem(UUID problemId) {
+        if (problemId == null) {
+            throw new IllegalArgumentException("problemId must not be null");
+        }
+        List<TestCase> testCases = testCaseRepo.findByProblemIdOrderByOrderIndexAsc(problemId);
+        return testCases.stream()
+                .map(this::toTestCaseResponse)
+                .toList();
+    }
+
     private String validateTestCaseRequest(CreateTestCaseDto req) {
         if (req == null) {
             return "Request body is required";

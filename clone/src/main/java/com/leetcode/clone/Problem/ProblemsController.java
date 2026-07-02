@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.leetcode.clone.Problem.dto.CategoryCountDto;
 import com.leetcode.clone.Problem.dto.ProblemResponse;
+import com.leetcode.clone.Problem.dto.TestCaseResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -41,6 +42,11 @@ public class ProblemsController {
     public ResponseEntity<ProblemResponse> getSpecificProblem(@PathVariable UUID id) {
 
         return ResponseEntity.ok(problemService.getSpecificProblem(id));
+    }
+
+    @GetMapping("/test-case/{id}")
+    public ResponseEntity<List<TestCaseResponse>> getTestCases(@PathVariable UUID id) {
+        return ResponseEntity.ok(problemService.getTestCasesForProblem(id));
     }
 
 }
