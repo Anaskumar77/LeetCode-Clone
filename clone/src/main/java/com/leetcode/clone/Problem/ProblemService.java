@@ -171,7 +171,8 @@ public class ProblemService {
         List<ParamDto> paramsList = Collections.emptyList();
         if (entity.getParams() != null && !entity.getParams().isBlank()) {
             try {
-                paramsList = objectMapper.readValue(entity.getParams(), new TypeReference<List<ParamDto>>() {});
+                paramsList = objectMapper.readValue(entity.getParams(), new TypeReference<List<ParamDto>>() {
+                });
             } catch (Exception e) {
                 log.warn("Could not deserialize params for problem {}: {}", entity.getId(), e.getMessage());
             }
@@ -267,7 +268,8 @@ public class ProblemService {
     }
 
     /**
-     * Accepts a single JSON body containing a problem UUID and a list of test cases.
+     * Accepts a single JSON body containing a problem UUID and a list of test
+     * cases.
      */
     @Transactional
     public AddTestCaseResponseDto addTestCasesBulk(BulkTestCaseUploadDto upload) {
@@ -294,14 +296,14 @@ public class ProblemService {
         List<TestCaseItemDto> items = upload.getTestCases();
         for (int i = 0; i < items.size(); i++) {
             TestCaseItemDto item = items.get(i);
-            if (item.getInput() == null || item.getInput().isBlank()) {
+            if (item.getInput() == null) {
                 return AddTestCaseResponseDto.builder()
                         .success(false)
                         .message(ProblemStatus.INVALID_REQUEST)
                         .error("Item at index " + i + ": input is required")
                         .build();
             }
-            if (item.getExpectedOutput() == null || item.getExpectedOutput().isBlank()) {
+            if (item.getExpectedOutput() == null) {
                 return AddTestCaseResponseDto.builder()
                         .success(false)
                         .message(ProblemStatus.INVALID_REQUEST)
@@ -428,10 +430,10 @@ public class ProblemService {
         if (req.getProblem() == null) {
             return "problem is required";
         }
-        if (req.getInput() == null || req.getInput().isBlank()) {
+        if (req.getInput() == null) {
             return "input is required";
         }
-        if (req.getExpectedOutput() == null || req.getExpectedOutput().isBlank()) {
+        if (req.getExpectedOutput() == null) {
             return "expectedOutput is required";
         }
         if (req.getOrderIndex() < 0) {

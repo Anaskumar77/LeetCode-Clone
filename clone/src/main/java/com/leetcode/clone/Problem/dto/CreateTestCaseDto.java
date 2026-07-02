@@ -15,10 +15,10 @@ public class CreateTestCaseDto {
     @NotNull
     private UUID problem;
 
-    @NotBlank
+    @NotNull
     private String input;
 
-    @NotBlank
+    @NotNull
     private String expectedOutput;
 
     @JsonProperty("isSample")

@@ -28,7 +28,7 @@ public class AdminProblemController {
 
     private final ProblemService problemService;
 
-    @PostMapping("/")
+    @PostMapping({ "", "/" })
     @PreAuthorize("hasRole('ADMIN')") // only ADMIN can create problems
     public ResponseEntity<CreateProblemResponseDto> createProblem(@Valid @RequestBody CreateProblemDto req) {
         System.out.print(req);
