@@ -40,13 +40,14 @@ public class FavoriteController {
     }
 
     /**
-     * GET /api/favorites?count=10 — Get favorite problems for the authenticated
-     * user
+     * GET /api/favorites?count=0 — Get favorite problems for the authenticated
+     * user. When count is 0 (default), returns ALL favorites.
      */
-    @GetMapping()
+    @GetMapping("")
     public ResponseEntity<List<FavoriteResponseDto>> getFavorites(
-            @RequestParam(defaultValue = "10") int count,
+            @RequestParam(defaultValue = "0") int count,
             Authentication authentication) {
+
         String userEmail = authentication.getName();
         List<FavoriteResponseDto> favorites = favoriteService.getFavorites(userEmail, count);
         return ResponseEntity.ok(favorites);

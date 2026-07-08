@@ -62,14 +62,20 @@ public class FavoriteService {
     }
 
     /**
-     * Get favorite problems for the authenticated user, limited by count.
+     * Get favorite problems for the authenticated user.
+     * When count is 0, returns ALL favorites; otherwise limits to count.
      */
     public List<FavoriteResponseDto> getFavorites(String userEmail, int count) {
         UserEntity user = userRepo.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Pageable pageable = PageRequest.of(0, count, Sort.by(Sort.Direction.DESC, "createdAt"));
-        List<FavoriteProblem> favorites = favoriteRepo.findByUserId(user.getId(), pageable);
+        List<FavoriteProblem> favorites;
+        if (count <= 0) {
+            favorites = favoriteRepo.findByUserId(user.getId());
+        } else {
+            Pageable pageable = PageRequest.of(0, count, Sort.by(Sort.Direction.DESC, "createdAt"));
+            favorites = favoriteRepo.findByUserId(user.getId(), pageable);
+        }
         log.info("Fetched {} favorites for userId={}", favorites.size(), user.getId());
 
         return favorites.stream()

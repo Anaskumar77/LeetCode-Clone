@@ -55,6 +55,54 @@ export const fetchProblemById = createAsyncThunk(
   }
 );
 
+/**
+ * fetchFavorites — GET /api/favorites
+ *
+ * Fetches ALL favorited problems for the authenticated user.
+ * Returns List<FavoriteResponseDto> containing problemId fields.
+ */
+export const fetchFavorites = createAsyncThunk(
+  'problems/fetchFavorites',
+  async (_, { rejectWithValue }) => {
+    try {
+      const data = await api.get('/favorites');  // count=0 default → all
+      return data;  // FavoriteResponseDto[]
+    } catch (err) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
+/**
+ * addFavoriteAsync — POST /api/favorites/{problemId}
+ */
+export const addFavoriteAsync = createAsyncThunk(
+  'problems/addFavorite',
+  async (problemId, { rejectWithValue }) => {
+    try {
+      await api.post(`/favorites/${problemId}`);
+      return problemId;
+    } catch (err) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
+/**
+ * removeFavoriteAsync — DELETE /api/favorites/{problemId}
+ */
+export const removeFavoriteAsync = createAsyncThunk(
+  'problems/removeFavorite',
+  async (problemId, { rejectWithValue }) => {
+    try {
+      await api.delete(`/favorites/${problemId}`);
+      return problemId;
+    } catch (err) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
 /* ════════════════════════════════════════════
    INITIAL STATE
 ════════════════════════════════════════════ */
@@ -83,14 +131,6 @@ const problemsSlice = createSlice({
   name: 'problems',
   initialState,
   reducers: {
-    /** Toggle a problem in/out of favorites */
-    toggleFavorite(state, action) {
-      const id = action.payload;
-      const idx = state.favorites.indexOf(id);
-      if (idx === -1) state.favorites.push(id);
-      else state.favorites.splice(idx, 1);
-    },
-
     /** Partial update of filters */
     setFilter(state, action) {
       state.filters = { ...state.filters, ...action.payload };
@@ -149,11 +189,33 @@ const problemsSlice = createSlice({
         state.loading = false;
         state.error = action.payload ?? 'Failed to fetch problem';
       });
+
+    // ── fetchFavorites ─────────────────────────
+    builder
+      .addCase(fetchFavorites.fulfilled, (state, action) => {
+        // Extract just the problemId from each FavoriteResponseDto
+        state.favorites = action.payload.map((fav) => fav.problemId);
+      });
+
+    // ── addFavoriteAsync ───────────────────────
+    builder
+      .addCase(addFavoriteAsync.fulfilled, (state, action) => {
+        const id = action.payload;
+        if (!state.favorites.includes(id)) {
+          state.favorites.push(id);
+        }
+      });
+
+    // ── removeFavoriteAsync ────────────────────
+    builder
+      .addCase(removeFavoriteAsync.fulfilled, (state, action) => {
+        const id = action.payload;
+        state.favorites = state.favorites.filter((fid) => fid !== id);
+      });
   },
 });
 
 export const {
-  toggleFavorite,
   setFilter,
   resetFilters,
   setPagination,
