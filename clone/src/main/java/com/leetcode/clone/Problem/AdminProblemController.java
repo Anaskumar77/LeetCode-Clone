@@ -72,10 +72,9 @@ public class AdminProblemController {
 
     @DeleteMapping("/test-case/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public String deleteTestCase(@PathVariable UUID id) {
-
-        return problemService.deleteTestCase(id);
-
+    public ResponseEntity<Map<String, String>> deleteTestCase(@PathVariable UUID id) {
+        String message = problemService.deleteTestCase(id);
+        return ResponseEntity.ok(Map.of("message", message));
     }
 
     private HttpStatus resolveTestCaseStatus(AddTestCaseResponseDto body) {

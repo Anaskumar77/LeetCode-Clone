@@ -263,8 +263,13 @@ public class ProblemService {
         }
     }
 
+    @Transactional
     public String deleteTestCase(UUID id) {
-        return "hello";
+        if (!testCaseRepo.existsById(id)) {
+            return "Test case not found";
+        }
+        testCaseRepo.deleteById(id);
+        return "Test case deleted successfully";
     }
 
     /**
@@ -428,6 +433,16 @@ public class ProblemService {
             throw new IllegalArgumentException("problemId must not be null");
         }
         List<TestCase> testCases = testCaseRepo.findByProblemIdOrderByOrderIndexAsc(problemId);
+        return testCases.stream()
+                .map(this::toTestCaseResponse)
+                .toList();
+    }
+
+    public List<TestCaseResponse> getSampleTestCasesForProblem(UUID problemId) {
+        if (problemId == null) {
+            throw new IllegalArgumentException("problemId must not be null");
+        }
+        List<TestCase> testCases = testCaseRepo.findByProblemIdAndIsSampleTrueOrderByOrderIndexAsc(problemId);
         return testCases.stream()
                 .map(this::toTestCaseResponse)
                 .toList();

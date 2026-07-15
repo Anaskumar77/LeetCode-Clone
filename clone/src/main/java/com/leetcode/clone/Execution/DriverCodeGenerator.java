@@ -137,24 +137,33 @@ public class DriverCodeGenerator {
             code.append(TREE_SERIALIZE_HELPER).append("\n");
         }
 
-        // Parse stdin
-        code.append("data = json.loads(sys.stdin.read())\n");
+        // Parse stdin line by line with robust JSON parsing
+        code.append("def parse_arg(val):\n");
+        code.append("    try:\n");
+        code.append("        return json.loads(val)\n");
+        code.append("    except Exception:\n");
+        code.append("        return val\n\n");
+        
+        code.append("lines = [line for line in sys.stdin.read().strip().split('\\n') if line]\n");
 
         // Build argument list
         StringBuilder args = new StringBuilder();
         for (int i = 0; i < params.size(); i++) {
             ParamDto p = params.get(i);
+            
+            code.append(String.format("arg_%d = parse_arg(lines[%d]) if len(lines) > %d else None\n", i, i, i));
+            
             String argExpr = switch (p.getType()) {
-                case "ListNode" -> "build_ll(data[\"" + p.getName() + "\"])";
-                case "TreeNode" -> "build_tree(data[\"" + p.getName() + "\"])";
-                default         -> "data[\"" + p.getName() + "\"]";
+                case "ListNode" -> String.format("build_ll(arg_%d)", i);
+                case "TreeNode" -> String.format("build_tree(arg_%d)", i);
+                default         -> String.format("arg_%d", i);
             };
             args.append(argExpr);
             if (i < params.size() - 1) args.append(", ");
         }
 
-        // Call Solution and print result
-        code.append("result = Solution().").append(functionName).append("(").append(args).append(")\n");
+        // Call function directly (starter code doesn't have class Solution)
+        code.append("result = ").append(functionName).append("(").append(args).append(")\n");
 
         String printExpr = switch (returnType != null ? returnType : "") {
             case "ListNode" -> "json.dumps(ll_to_arr(result))";

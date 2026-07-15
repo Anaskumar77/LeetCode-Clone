@@ -84,11 +84,13 @@ public class ExecutionService {
                 fullScript.append(resolvedDriverCode).append("\n");
             }
 
+            log.info("=== EXECUTING SCRIPT ===\n{}\n========================", fullScript.toString());
             Files.writeString(scriptFile, fullScript.toString());
 
             // 4. Write stdin to input.txt
             Path inputFile = tempDir.resolve("input.txt");
             String stdin = request.getStdin() != null ? request.getStdin() : "";
+            log.info("=== STDIN ===\n{}\n=============", stdin);
             Files.writeString(inputFile, stdin);
 
             int timeout = request.getTimeLimitSeconds() > 0

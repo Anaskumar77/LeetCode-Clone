@@ -1,7 +1,8 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProblemById } from '../../store/slices/problemsSlice';
+import Editor from '@monaco-editor/react';
 import api from '../../api/apiClient';
 import './SolveProblem.css';
 
@@ -24,8 +25,9 @@ export default function SolveProblem() {
   const [consoleTab, setConsoleTab] = useState('testcase');  // testcase | result
   const [running, setRunning] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [results, setResults] = useState(null);
-  const textareaRef = useRef(null);
+  const [runResults, setRunResults] = useState([]);          // per-case results from Run
+  const [activeResultCase, setActiveResultCase] = useState(0); // which result case tab is selected
+  const [submitResult, setSubmitResult] = useState(null);    // single result from Submit
 
   // ── Fetch problem + test cases ─────────────────
   useEffect(() => {
@@ -47,51 +49,40 @@ export default function SolveProblem() {
     }
   }, [problem]);
 
-  // ── Line numbers ───────────────────────────────
-  const lineCount = code.split('\n').length;
-
-  // ── Textarea tab support ───────────────────────
-  const handleKeyDown = useCallback((e) => {
-    if (e.key === 'Tab') {
-      e.preventDefault();
-      const { selectionStart, selectionEnd } = e.target;
-      const before = code.substring(0, selectionStart);
-      const after = code.substring(selectionEnd);
-      const newCode = before + '    ' + after;
-      setCode(newCode);
-      // Restore cursor position after state update
-      requestAnimationFrame(() => {
-        if (textareaRef.current) {
-          textareaRef.current.selectionStart = selectionStart + 4;
-          textareaRef.current.selectionEnd = selectionStart + 4;
-        }
-      });
-    }
-  }, [code]);
-
-  // ── Run Code (single test case) ────────────────
+  // ── Run Code (all visible test cases) ───────────
   const handleRun = async () => {
-    if (!problem || running) return;
+    if (!problem || running || testCases.length === 0) return;
     setRunning(true);
     setConsoleTab('result');
-    setResults(null);
+    setRunResults([]);
+    setSubmitResult(null);
+    setActiveResultCase(0);
 
-    const tc = testCases[activeTestCase];
-    try {
-      const result = await api.post('/execute', {
+    // Execute all visible test cases in parallel
+    const promises = testCases.map((tc) =>
+      api.post('/execute', {
         sourceCode: code,
-        stdin: tc?.input || '',
-        expectedOutput: tc?.expectedOutput || '',
+        stdin: tc.input || '',
+        expectedOutput: tc.expectedOutput || '',
         timeLimitSeconds: problem.timeLimit || 5,
         functionName: problem.functionName,
         returnType: problem.returnType,
         params: problem.params,
         driverImports: problem.driverImports,
         driverCode: problem.driverCode,
-      });
-      setResults(result);
+      }).catch((err) => ({
+        status: 'RUNTIME_ERROR',
+        stderr: err.message,
+        passed: false,
+      }))
+    );
+
+    try {
+      const allResults = await Promise.all(promises);
+      setRunResults(allResults);
     } catch (err) {
-      setResults({ status: 'RUNTIME_ERROR', stderr: err.message, passed: false });
+      // Fallback: shouldn't reach here since individual promises catch
+      setRunResults([{ status: 'RUNTIME_ERROR', stderr: err.message, passed: false }]);
     } finally {
       setRunning(false);
     }
@@ -102,7 +93,8 @@ export default function SolveProblem() {
     if (!problem || submitting) return;
     setSubmitting(true);
     setConsoleTab('result');
-    setResults(null);
+    setRunResults([]);
+    setSubmitResult(null);
 
     try {
       const result = await api.post('/submission/', {
@@ -112,12 +104,12 @@ export default function SolveProblem() {
       });
       // The submission endpoint returns a String status; wrap it
       if (typeof result === 'string') {
-        setResults({ status: result, passed: result === 'ACCEPTED' });
+        setSubmitResult({ status: result, passed: result === 'ACCEPTED' });
       } else {
-        setResults(result);
+        setSubmitResult(result);
       }
     } catch (err) {
-      setResults({ status: 'ERROR', stderr: err.message, passed: false });
+      setSubmitResult({ status: 'ERROR', stderr: err.message, passed: false });
     } finally {
       setSubmitting(false);
     }
@@ -347,24 +339,33 @@ export default function SolveProblem() {
             </div>
 
             <div className="code-editor-area">
-              <div className="line-numbers">
-                {Array.from({ length: lineCount }, (_, i) => (
-                  <div key={i} style={{ marginBottom: 1 }}>{i + 1}</div>
-                ))}
-              </div>
-              <div className="code-textarea-wrapper">
-                <textarea
-                  ref={textareaRef}
-                  className="code-textarea"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  spellCheck={false}
-                  autoCapitalize="off"
-                  autoCorrect="off"
-                  placeholder="# Write your solution here..."
-                />
-              </div>
+              <Editor
+                height="100%"
+                language="python"
+                theme="vs-dark"
+                value={code}
+                onChange={(val) => setCode(val || '')}
+                options={{
+                  fontSize: 14,
+                  fontFamily: "'JetBrains Mono', 'Consolas', 'Monaco', 'Courier New', monospace",
+                  minimap: { enabled: false },
+                  automaticLayout: true,
+                  scrollBeyondLastLine: false,
+                  tabSize: 4,
+                  lineNumbersMinChars: 3,
+                  cursorBlinking: "smooth",
+                  cursorSmoothCaretAnimation: "on",
+                  scrollbar: {
+                    vertical: "visible",
+                    horizontal: "visible",
+                    useShadows: false,
+                    verticalHasArrows: false,
+                    horizontalHasArrows: false,
+                    verticalScrollbarSize: 10,
+                    horizontalScrollbarSize: 10
+                  }
+                }}
+              />
             </div>
           </div>
 
@@ -426,55 +427,115 @@ export default function SolveProblem() {
                   {(running || submitting) ? (
                     <div className="loading-overlay">
                       <div className="spinner" />
-                      {running ? 'Running your code…' : 'Submitting…'}
+                      {running ? `Running ${testCases.length} test case${testCases.length > 1 ? 's' : ''}…` : 'Submitting…'}
                     </div>
-                  ) : results ? (
+                  ) : runResults.length > 0 ? (
+                    /* ── Per-case Run Results ── */
                     <div>
-                      <div className={getStatusClass(results.status)} style={{ fontSize: 18 }}>
-                        {getStatusLabel(results.status)}
+                      {/* Summary line */}
+                      <div style={{ marginBottom: 12 }}>
+                        {runResults.every((r) => r.passed) ? (
+                          <span className="result-accepted" style={{ fontSize: 18 }}>✓ All Test Cases Passed</span>
+                        ) : (
+                          <span className="result-wrong" style={{ fontSize: 18 }}>
+                            ✗ {runResults.filter((r) => r.passed).length}/{runResults.length} Test Cases Passed
+                          </span>
+                        )}
                       </div>
 
-                      {/* Execution stats */}
-                      {(results.executionTimeMs != null || results.memoryUsageKb != null) && (
-                        <div className="result-stats">
-                          {results.executionTimeMs != null && (
-                            <span>
-                              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>timer</span>
-                              {results.executionTimeMs} ms
-                            </span>
-                          )}
-                          {results.memoryUsageKb != null && (
-                            <span>
-                              <span className="material-symbols-outlined" style={{ fontSize: 14 }}>memory</span>
-                              {(results.memoryUsageKb / 1024).toFixed(1)} MB
-                            </span>
-                          )}
-                        </div>
-                      )}
+                      {/* Per-case tabs */}
+                      <div className="testcase-tabs">
+                        {runResults.map((r, idx) => (
+                          <button
+                            key={idx}
+                            className={`testcase-tab ${activeResultCase === idx ? 'active' : ''}`}
+                            onClick={() => setActiveResultCase(idx)}
+                            style={{
+                              borderLeft: `3px solid ${r.passed ? '#4ade80' : '#ef4444'}`,
+                              color: activeResultCase === idx
+                                ? '#e5e2e3'
+                                : r.passed ? '#4ade80' : '#ef4444',
+                            }}
+                          >
+                            {r.passed ? '✓' : '✗'} Case {idx + 1}
+                          </button>
+                        ))}
+                      </div>
 
-                      {/* Output details */}
-                      {results.status === 'WRONG_ANSWER' && (
-                        <div className="result-detail">
-                          <div className="result-label">Expected Output:</div>
-                          <div className="result-value">{results.expectedOutput}</div>
-                          <div className="result-label">Your Output:</div>
-                          <div className="result-value">{results.actualOutput}</div>
-                        </div>
-                      )}
+                      {/* Selected case details */}
+                      {runResults[activeResultCase] && (() => {
+                        const r = runResults[activeResultCase];
+                        return (
+                          <div style={{ marginTop: 12 }}>
+                            <div className={getStatusClass(r.status)} style={{ fontSize: 16 }}>
+                              {getStatusLabel(r.status)}
+                            </div>
 
-                      {/* Stderr */}
-                      {results.stderr && (
+                            {/* Execution stats */}
+                            {(r.executionTimeMs != null || r.memoryUsageKb != null) && (
+                              <div className="result-stats">
+                                {r.executionTimeMs != null && (
+                                  <span>
+                                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>timer</span>
+                                    {r.executionTimeMs} ms
+                                  </span>
+                                )}
+                                {r.memoryUsageKb != null && (
+                                  <span>
+                                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>memory</span>
+                                    {(r.memoryUsageKb / 1024).toFixed(1)} MB
+                                  </span>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Input */}
+                            {testCases[activeResultCase] && (
+                              <div className="result-detail">
+                                <div className="result-label">Input:</div>
+                                <div className="result-value">{testCases[activeResultCase].input}</div>
+                              </div>
+                            )}
+
+                            {/* Wrong answer: show expected vs actual */}
+                            {r.status === 'WRONG_ANSWER' && (
+                              <div className="result-detail">
+                                <div className="result-label">Expected Output:</div>
+                                <div className="result-value">{r.expectedOutput}</div>
+                                <div className="result-label">Your Output:</div>
+                                <div className="result-value">{r.actualOutput}</div>
+                              </div>
+                            )}
+
+                            {/* Accepted: show output */}
+                            {r.status === 'ACCEPTED' && r.stdout && (
+                              <div className="result-detail">
+                                <div className="result-label">Output:</div>
+                                <div className="result-value">{r.stdout}</div>
+                              </div>
+                            )}
+
+                            {/* Stderr */}
+                            {r.stderr && (
+                              <div className="result-detail">
+                                <div className="result-label">Error:</div>
+                                <div className="result-value" style={{ color: '#ef4444' }}>{r.stderr}</div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
+                    </div>
+                  ) : submitResult ? (
+                    /* ── Submit Result (single) ── */
+                    <div>
+                      <div className={getStatusClass(submitResult.status)} style={{ fontSize: 18 }}>
+                        {getStatusLabel(submitResult.status)}
+                      </div>
+                      {submitResult.stderr && (
                         <div className="result-detail">
                           <div className="result-label">Error:</div>
-                          <div className="result-value" style={{ color: '#ef4444' }}>{results.stderr}</div>
-                        </div>
-                      )}
-
-                      {/* Stdout */}
-                      {results.stdout && results.status === 'ACCEPTED' && (
-                        <div className="result-detail">
-                          <div className="result-label">Output:</div>
-                          <div className="result-value">{results.stdout}</div>
+                          <div className="result-value" style={{ color: '#ef4444' }}>{submitResult.stderr}</div>
                         </div>
                       )}
                     </div>
