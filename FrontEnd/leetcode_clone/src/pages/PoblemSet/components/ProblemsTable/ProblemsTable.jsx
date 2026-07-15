@@ -7,10 +7,12 @@ import PendingIcon from '@mui/icons-material/Pending';
 import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { fetchProblems, fetchFavorites, addFavoriteAsync, removeFavoriteAsync } from '../../../../store/slices/problemsSlice';
 
 export default function ProblemsTable() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { list: problems, loading, favorites } = useSelector((state) => state.problems);
 
   useEffect(() => {
@@ -85,7 +87,7 @@ export default function ProblemsTable() {
             const acceptanceRate = ((problem.title.length * 13) % 60 + 20).toFixed(1);
 
             return (
-              <div key={problem.id || index} className="grid grid-cols-[40px_1fr_100px_100px_40px] gap-4 px-6 py-4 bg-surface-container/30 hover:bg-surface-variant/40 items-center transition-colors border-b border-white/5 group cursor-pointer">
+              <div key={problem.id || index} onClick={() => navigate(`/problem/${problem.id}`)} className="grid grid-cols-[40px_1fr_100px_100px_40px] gap-4 px-6 py-4 bg-surface-container/30 hover:bg-surface-variant/40 items-center transition-colors border-b border-white/5 group cursor-pointer">
                 <div className="text-on-surface-variant/30">
                   <RadioButtonUncheckedIcon className="text-[20px]" />
                 </div>

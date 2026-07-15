@@ -43,7 +43,7 @@ async function request(path, options = {}) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  let response = await fetch(url, { ...options, headers });
+  let response = await fetch(url, { ...options, headers, credentials: 'include' });
 
   // If unauthorized, attempt one retry with a refreshed token
   if (response.status === 401 && store && path !== '/auth/refresh') {
@@ -51,7 +51,7 @@ async function request(path, options = {}) {
       const action = await store.dispatch(refreshAccessToken()).unwrap();
       token = action.accessToken;
       headers['Authorization'] = `Bearer ${token}`;
-      response = await fetch(url, { ...options, headers });
+      response = await fetch(url, { ...options, headers, credentials: 'include' });
     } catch (err) {
       store.dispatch(clearUser());
     }

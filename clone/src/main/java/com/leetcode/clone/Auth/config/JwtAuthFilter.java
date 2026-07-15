@@ -17,13 +17,24 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+
+    /**
+     * Skip this filter entirely for public auth endpoints (login, register, refresh).
+     */
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+        return path.startsWith("/api/auth/");
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest req,
@@ -38,7 +49,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         String token = authHeader.substring(7);
-        String username = jwtService.extractUsername(token);
+        String username;
+
+        try {
+            username = jwtService.extractUsername(token);
+        } catch (Exception e) {
+            // Token is expired or malformed — proceed without authentication
+            log.debug("JWT validation failed: {}", e.getMessage());
+            chain.doFilter(req, res);
+            return;
+        }
 
         // Only set context if not already authenticated
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -54,4 +74,4 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         chain.doFilter(req, res);
     }
-}
+}

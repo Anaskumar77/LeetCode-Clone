@@ -4,7 +4,6 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Data;
@@ -25,6 +24,5 @@ public class CreateTestCaseDto {
     private boolean isSample;
 
     @PositiveOrZero
-    private int orderIndex; 
+    private int orderIndex;
 }
-

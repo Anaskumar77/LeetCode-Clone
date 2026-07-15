@@ -15,6 +15,7 @@ export const registerUser = createAsyncThunk(
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(userData),
       });
       if (!response.ok) {
@@ -39,13 +40,13 @@ export const loginUser = createAsyncThunk(
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(credentials),
       });
       if (!response.ok) {
         const text = await response.text().catch(() => 'Login failed');
         return rejectWithValue(text || 'Login failed');
       }
-      console.log("\n\n\n\n\n\nlogin successfull\n\n\n\n\n\n\n")
       return response.json();
     } catch (err) {
       return rejectWithValue(err.message ?? 'Login failed');
@@ -63,6 +64,7 @@ export const refreshAccessToken = createAsyncThunk(
     try {
       const response = await fetch('/api/auth/refresh', {
         method: 'POST',
+        credentials: 'include',
       });
       if (!response.ok) {
         const text = await response.text().catch(() => 'Refresh failed');
@@ -71,6 +73,24 @@ export const refreshAccessToken = createAsyncThunk(
       return response.json();
     } catch (err) {
       return rejectWithValue(err.message ?? 'Refresh failed');
+    }
+  }
+);
+
+/**
+ * initializeAuth — called once on app load.
+ * Tries to refresh the access token using the httpOnly refresh token cookie.
+ * If successful, the user is silently authenticated.
+ */
+export const initializeAuth = createAsyncThunk(
+  'auth/initialize',
+  async (_, { dispatch }) => {
+    try {
+      const result = await dispatch(refreshAccessToken()).unwrap();
+      return result;
+    } catch {
+      // No valid refresh token cookie — user stays logged out
+      return null;
     }
   }
 );
