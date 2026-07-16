@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProblemById } from '../../store/slices/problemsSlice';
 import Editor from '@monaco-editor/react';
+import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels';
 import api from '../../api/apiClient';
 import './SolveProblem.css';
 
@@ -223,337 +224,345 @@ export default function SolveProblem() {
 
       {/* ── Main Workspace ── */}
       <main className="solve-main">
-        {/* ── Left Panel: Problem Description ── */}
-        <div className="solve-left-panel">
-          {/* Tabs */}
-          <div className="panel-tabs">
-            <button
-              className={`panel-tab ${leftTab === 'description' ? 'active' : ''}`}
-              onClick={() => setLeftTab('description')}
-            >
-              <span className="material-symbols-outlined">description</span>
-              Description
-            </button>
-            <button
-              className={`panel-tab ${leftTab === 'solutions' ? 'active' : ''}`}
-              onClick={() => setLeftTab('solutions')}
-            >
-              <span className="material-symbols-outlined">lightbulb</span>
-              Solutions
-            </button>
-            <button
-              className={`panel-tab ${leftTab === 'submissions' ? 'active' : ''}`}
-              onClick={() => setLeftTab('submissions')}
-            >
-              <span className="material-symbols-outlined">history</span>
-              Submissions
-            </button>
-          </div>
-
-          {/* Content */}
-          <div className="problem-content">
-            {problemLoading ? (
-              <div className="problem-loading">
-                <div className="spinner" />
-                Loading problem…
-              </div>
-            ) : !problem ? (
-              <div className="problem-loading">Problem not found.</div>
-            ) : leftTab === 'description' ? (
-              <>
-                {/* Title */}
-                <h2>{problem.title}</h2>
-
-                {/* Tags */}
-                <div className="problem-tags">
-                  <span className={`problem-tag ${getDifficultyClass(problem.difficulty)}`}>
-                    {problem.difficulty?.charAt(0) + problem.difficulty?.slice(1).toLowerCase()}
-                  </span>
-                  {problem.categories?.map((cat, i) => (
-                    <span key={i} className="problem-tag category">{cat}</span>
-                  ))}
-                </div>
-
-                {/* Description */}
-                <div dangerouslySetInnerHTML={{ __html: formatDescription(problem.description) }} />
-
-                {/* Sample Test Cases */}
-                {testCases.length > 0 && (
-                  <>
-                    <h3 style={{ color: '#e5e2e3', fontSize: 18, fontWeight: 600, margin: '24px 0 12px' }}>Examples</h3>
-                    {testCases.map((tc, idx) => {
-                      const inputs = parseTestCaseInputs(tc.input);
-                      return (
-                        <div key={idx} className="example-block">
-                          <div className="example-label">Example {idx + 1}:</div>
-                          <div className="example-io">
-                            {inputs.map((inp, j) => (
-                              <div key={j}><strong>{inp.name} = </strong>{inp.value}</div>
-                            ))}
-                            <div><strong>Output: </strong>{tc.expectedOutput}</div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </>
-                )}
-
-                {/* Constraints */}
-                <div style={{ marginTop: 24 }}>
-                  <h3 style={{ color: '#e5e2e3', fontSize: 18, fontWeight: 600, marginBottom: 12 }}>Constraints</h3>
-                  <div style={{ color: '#cac4d4', fontSize: 14 }}>
-                    <p>⏱ Time Limit: {problem.timeLimit || 5}s</p>
-                    <p>💾 Memory Limit: {problem.memoryLimit || 128}MB</p>
-                  </div>
-                </div>
-              </>
-            ) : leftTab === 'solutions' ? (
-              <div style={{ color: '#cac4d4', textAlign: 'center', paddingTop: 48 }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 48, display: 'block', marginBottom: 12, opacity: 0.3 }}>lightbulb</span>
-                Solutions will be available soon.
-              </div>
-            ) : (
-              <div style={{ color: '#cac4d4', textAlign: 'center', paddingTop: 48 }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 48, display: 'block', marginBottom: 12, opacity: 0.3 }}>history</span>
-                Submission history coming soon.
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ── Right Panel: Code Editor + Console ── */}
-        <div className="solve-right-panel">
-          {/* ── Editor Pane ── */}
-          <div className="editor-pane">
-            <div className="editor-toolbar">
-              <div className="editor-toolbar-left">
-                <button className="language-selector">
-                  <span className="material-symbols-outlined">code</span>
-                  Python 3
-                  <span className="material-symbols-outlined" style={{ fontSize: 16 }}>expand_more</span>
-                </button>
-              </div>
-              <div className="editor-toolbar-right">
-                <button className="toolbar-icon-btn" title="Reset code" onClick={() => setCode(problem?.starterCode || '')}>
-                  <span className="material-symbols-outlined">restart_alt</span>
-                </button>
-                <button className="toolbar-icon-btn" title="Editor Settings">
-                  <span className="material-symbols-outlined">settings</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="code-editor-area">
-              <Editor
-                height="100%"
-                language="python"
-                theme="vs-dark"
-                value={code}
-                onChange={(val) => setCode(val || '')}
-                options={{
-                  fontSize: 14,
-                  fontFamily: "'JetBrains Mono', 'Consolas', 'Monaco', 'Courier New', monospace",
-                  minimap: { enabled: false },
-                  automaticLayout: true,
-                  scrollBeyondLastLine: false,
-                  tabSize: 4,
-                  lineNumbersMinChars: 3,
-                  cursorBlinking: "smooth",
-                  cursorSmoothCaretAnimation: "on",
-                  scrollbar: {
-                    vertical: "visible",
-                    horizontal: "visible",
-                    useShadows: false,
-                    verticalHasArrows: false,
-                    horizontalHasArrows: false,
-                    verticalScrollbarSize: 10,
-                    horizontalScrollbarSize: 10
-                  }
-                }}
-              />
-            </div>
-          </div>
-
-          {/* ── Console / Test Cases ── */}
-          <div className="console-pane">
-            <div className="console-toolbar">
-              <div className="console-toolbar-left">
-                <button
-                  className={`console-tab ${consoleTab === 'testcase' ? 'active' : ''}`}
-                  onClick={() => setConsoleTab('testcase')}
-                >
-                  <span className="material-symbols-outlined">terminal</span>
-                  Testcase
-                </button>
-                <button
-                  className={`console-tab ${consoleTab === 'result' ? 'active' : ''}`}
-                  onClick={() => setConsoleTab('result')}
-                >
-                  <span className="material-symbols-outlined">science</span>
-                  Test Result
-                </button>
-              </div>
-              <button className="toolbar-icon-btn" title="Toggle console">
-                <span className="material-symbols-outlined">expand_less</span>
+        <PanelGroup orientation="horizontal" className="panel-group-horizontal">
+          {/* ── Left Panel: Problem Description ── */}
+          <Panel defaultSize={38} minSize={20} className="solve-left-panel">
+            {/* Tabs */}
+            <div className="panel-tabs">
+              <button
+                className={`panel-tab ${leftTab === 'description' ? 'active' : ''}`}
+                onClick={() => setLeftTab('description')}
+              >
+                <span className="material-symbols-outlined">description</span>
+                Description
+              </button>
+              <button
+                className={`panel-tab ${leftTab === 'solutions' ? 'active' : ''}`}
+                onClick={() => setLeftTab('solutions')}
+              >
+                <span className="material-symbols-outlined">lightbulb</span>
+                Solutions
+              </button>
+              <button
+                className={`panel-tab ${leftTab === 'submissions' ? 'active' : ''}`}
+                onClick={() => setLeftTab('submissions')}
+              >
+                <span className="material-symbols-outlined">history</span>
+                Submissions
               </button>
             </div>
 
-            <div className="console-content">
-              {consoleTab === 'testcase' ? (
+            {/* Content */}
+            <div className="problem-content">
+              {problemLoading ? (
+                <div className="problem-loading">
+                  <div className="spinner" />
+                  Loading problem…
+                </div>
+              ) : !problem ? (
+                <div className="problem-loading">Problem not found.</div>
+              ) : leftTab === 'description' ? (
                 <>
-                  {/* Test case tabs */}
-                  <div className="testcase-tabs">
-                    {testCases.map((_, idx) => (
-                      <button
-                        key={idx}
-                        className={`testcase-tab ${activeTestCase === idx ? 'active' : ''}`}
-                        onClick={() => setActiveTestCase(idx)}
-                      >
-                        Case {idx + 1}
-                      </button>
+                  {/* Title */}
+                  <h2>{problem.title}</h2>
+
+                  {/* Tags */}
+                  <div className="problem-tags">
+                    <span className={`problem-tag ${getDifficultyClass(problem.difficulty)}`}>
+                      {problem.difficulty?.charAt(0) + problem.difficulty?.slice(1).toLowerCase()}
+                    </span>
+                    {problem.categories?.map((cat, i) => (
+                      <span key={i} className="problem-tag category">{cat}</span>
                     ))}
                   </div>
 
-                  {/* Test case inputs */}
-                  {testCases[activeTestCase] && (
-                    <div>
-                      {parseTestCaseInputs(testCases[activeTestCase].input).map((inp, i) => (
-                        <div key={i} className="testcase-input-group">
-                          <label>{inp.name} =</label>
-                          <div className="testcase-value">{inp.value}</div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </>
-              ) : (
-                /* ── Test Result View ── */
-                <>
-                  {(running || submitting) ? (
-                    <div className="loading-overlay">
-                      <div className="spinner" />
-                      {running ? `Running ${testCases.length} test case${testCases.length > 1 ? 's' : ''}…` : 'Submitting…'}
-                    </div>
-                  ) : runResults.length > 0 ? (
-                    /* ── Per-case Run Results ── */
-                    <div>
-                      {/* Summary line */}
-                      <div style={{ marginBottom: 12 }}>
-                        {runResults.every((r) => r.passed) ? (
-                          <span className="result-accepted" style={{ fontSize: 18 }}>✓ All Test Cases Passed</span>
-                        ) : (
-                          <span className="result-wrong" style={{ fontSize: 18 }}>
-                            ✗ {runResults.filter((r) => r.passed).length}/{runResults.length} Test Cases Passed
-                          </span>
-                        )}
-                      </div>
+                  {/* Description */}
+                  <div dangerouslySetInnerHTML={{ __html: formatDescription(problem.description) }} />
 
-                      {/* Per-case tabs */}
+                  {/* Sample Test Cases */}
+                  {testCases.length > 0 && (
+                    <>
+                      <h3 style={{ color: '#e5e2e3', fontSize: 18, fontWeight: 600, margin: '24px 0 12px' }}>Examples</h3>
+                      {testCases.map((tc, idx) => {
+                        const inputs = parseTestCaseInputs(tc.input);
+                        return (
+                          <div key={idx} className="example-block">
+                            <div className="example-label">Example {idx + 1}:</div>
+                            <div className="example-io">
+                              {inputs.map((inp, j) => (
+                                <div key={j}><strong>{inp.name} = </strong>{inp.value}</div>
+                              ))}
+                              <div><strong>Output: </strong>{tc.expectedOutput}</div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </>
+                  )}
+
+                  {/* Constraints */}
+                  <div style={{ marginTop: 24 }}>
+                    <h3 style={{ color: '#e5e2e3', fontSize: 18, fontWeight: 600, marginBottom: 12 }}>Constraints</h3>
+                    <div style={{ color: '#cac4d4', fontSize: 14 }}>
+                      <p>⏱ Time Limit: {problem.timeLimit || 5}s</p>
+                      <p>💾 Memory Limit: {problem.memoryLimit || 128}MB</p>
+                    </div>
+                  </div>
+                </>
+              ) : leftTab === 'solutions' ? (
+                <div style={{ color: '#cac4d4', textAlign: 'center', paddingTop: 48 }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 48, display: 'block', marginBottom: 12, opacity: 0.3 }}>lightbulb</span>
+                  Solutions will be available soon.
+                </div>
+              ) : (
+                <div style={{ color: '#cac4d4', textAlign: 'center', paddingTop: 48 }}>
+                  <span className="material-symbols-outlined" style={{ fontSize: 48, display: 'block', marginBottom: 12, opacity: 0.3 }}>history</span>
+                  Submission history coming soon.
+                </div>
+              )}
+            </div>
+          </Panel>
+
+          <PanelResizeHandle className="resize-handle-horizontal" />
+
+          {/* ── Right Panel: Code Editor + Console ── */}
+          <Panel defaultSize={62} minSize={30} className="solve-right-panel">
+            <PanelGroup orientation="vertical" className="panel-group-vertical">
+              {/* ── Editor Pane ── */}
+              <Panel defaultSize={65} minSize={20} className="editor-pane">
+                <div className="editor-toolbar">
+                  <div className="editor-toolbar-left">
+                    <button className="language-selector">
+                      <span className="material-symbols-outlined">code</span>
+                      Python 3
+                      <span className="material-symbols-outlined" style={{ fontSize: 16 }}>expand_more</span>
+                    </button>
+                  </div>
+                  <div className="editor-toolbar-right">
+                    <button className="toolbar-icon-btn" title="Reset code" onClick={() => setCode(problem?.starterCode || '')}>
+                      <span className="material-symbols-outlined">restart_alt</span>
+                    </button>
+                    <button className="toolbar-icon-btn" title="Editor Settings">
+                      <span className="material-symbols-outlined">settings</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="code-editor-area">
+                  <Editor
+                    height="100%"
+                    language="python"
+                    theme="vs-dark"
+                    value={code}
+                    onChange={(val) => setCode(val || '')}
+                    options={{
+                      fontSize: 14,
+                      fontFamily: "'JetBrains Mono', 'Consolas', 'Monaco', 'Courier New', monospace",
+                      minimap: { enabled: false },
+                      automaticLayout: true,
+                      scrollBeyondLastLine: false,
+                      tabSize: 4,
+                      lineNumbersMinChars: 3,
+                      cursorBlinking: "smooth",
+                      cursorSmoothCaretAnimation: "on",
+                      scrollbar: {
+                        vertical: "visible",
+                        horizontal: "visible",
+                        useShadows: false,
+                        verticalHasArrows: false,
+                        horizontalHasArrows: false,
+                        verticalScrollbarSize: 10,
+                        horizontalScrollbarSize: 10
+                      }
+                    }}
+                  />
+                </div>
+              </Panel>
+
+              <PanelResizeHandle className="resize-handle-vertical" />
+
+              {/* ── Console / Test Cases ── */}
+              <Panel defaultSize={35} minSize={10} className="console-pane">
+                <div className="console-toolbar">
+                  <div className="console-toolbar-left">
+                    <button
+                      className={`console-tab ${consoleTab === 'testcase' ? 'active' : ''}`}
+                      onClick={() => setConsoleTab('testcase')}
+                    >
+                      <span className="material-symbols-outlined">terminal</span>
+                      Testcase
+                    </button>
+                    <button
+                      className={`console-tab ${consoleTab === 'result' ? 'active' : ''}`}
+                      onClick={() => setConsoleTab('result')}
+                    >
+                      <span className="material-symbols-outlined">science</span>
+                      Test Result
+                    </button>
+                  </div>
+                  <button className="toolbar-icon-btn" title="Toggle console">
+                    <span className="material-symbols-outlined">expand_less</span>
+                  </button>
+                </div>
+
+                <div className="console-content">
+                  {consoleTab === 'testcase' ? (
+                    <>
+                      {/* Test case tabs */}
                       <div className="testcase-tabs">
-                        {runResults.map((r, idx) => (
+                        {testCases.map((_, idx) => (
                           <button
                             key={idx}
-                            className={`testcase-tab ${activeResultCase === idx ? 'active' : ''}`}
-                            onClick={() => setActiveResultCase(idx)}
-                            style={{
-                              borderLeft: `3px solid ${r.passed ? '#4ade80' : '#ef4444'}`,
-                              color: activeResultCase === idx
-                                ? '#e5e2e3'
-                                : r.passed ? '#4ade80' : '#ef4444',
-                            }}
+                            className={`testcase-tab ${activeTestCase === idx ? 'active' : ''}`}
+                            onClick={() => setActiveTestCase(idx)}
                           >
-                            {r.passed ? '✓' : '✗'} Case {idx + 1}
+                            Case {idx + 1}
                           </button>
                         ))}
                       </div>
 
-                      {/* Selected case details */}
-                      {runResults[activeResultCase] && (() => {
-                        const r = runResults[activeResultCase];
-                        return (
-                          <div style={{ marginTop: 12 }}>
-                            <div className={getStatusClass(r.status)} style={{ fontSize: 16 }}>
-                              {getStatusLabel(r.status)}
+                      {/* Test case inputs */}
+                      {testCases[activeTestCase] && (
+                        <div>
+                          {parseTestCaseInputs(testCases[activeTestCase].input).map((inp, i) => (
+                            <div key={i} className="testcase-input-group">
+                              <label>{inp.name} =</label>
+                              <div className="testcase-value">{inp.value}</div>
                             </div>
-
-                            {/* Execution stats */}
-                            {(r.executionTimeMs != null || r.memoryUsageKb != null) && (
-                              <div className="result-stats">
-                                {r.executionTimeMs != null && (
-                                  <span>
-                                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>timer</span>
-                                    {r.executionTimeMs} ms
-                                  </span>
-                                )}
-                                {r.memoryUsageKb != null && (
-                                  <span>
-                                    <span className="material-symbols-outlined" style={{ fontSize: 14 }}>memory</span>
-                                    {(r.memoryUsageKb / 1024).toFixed(1)} MB
-                                  </span>
-                                )}
-                              </div>
-                            )}
-
-                            {/* Input */}
-                            {testCases[activeResultCase] && (
-                              <div className="result-detail">
-                                <div className="result-label">Input:</div>
-                                <div className="result-value">{testCases[activeResultCase].input}</div>
-                              </div>
-                            )}
-
-                            {/* Wrong answer: show expected vs actual */}
-                            {r.status === 'WRONG_ANSWER' && (
-                              <div className="result-detail">
-                                <div className="result-label">Expected Output:</div>
-                                <div className="result-value">{r.expectedOutput}</div>
-                                <div className="result-label">Your Output:</div>
-                                <div className="result-value">{r.actualOutput}</div>
-                              </div>
-                            )}
-
-                            {/* Accepted: show output */}
-                            {r.status === 'ACCEPTED' && r.stdout && (
-                              <div className="result-detail">
-                                <div className="result-label">Output:</div>
-                                <div className="result-value">{r.stdout}</div>
-                              </div>
-                            )}
-
-                            {/* Stderr */}
-                            {r.stderr && (
-                              <div className="result-detail">
-                                <div className="result-label">Error:</div>
-                                <div className="result-value" style={{ color: '#ef4444' }}>{r.stderr}</div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  ) : submitResult ? (
-                    /* ── Submit Result (single) ── */
-                    <div>
-                      <div className={getStatusClass(submitResult.status)} style={{ fontSize: 18 }}>
-                        {getStatusLabel(submitResult.status)}
-                      </div>
-                      {submitResult.stderr && (
-                        <div className="result-detail">
-                          <div className="result-label">Error:</div>
-                          <div className="result-value" style={{ color: '#ef4444' }}>{submitResult.stderr}</div>
+                          ))}
                         </div>
                       )}
-                    </div>
+                    </>
                   ) : (
-                    <div style={{ color: '#cac4d4', textAlign: 'center', paddingTop: 24, fontSize: 14 }}>
-                      Run your code to see results here.
-                    </div>
+                    /* ── Test Result View ── */
+                    <>
+                      {(running || submitting) ? (
+                        <div className="loading-overlay">
+                          <div className="spinner" />
+                          {running ? `Running ${testCases.length} test case${testCases.length > 1 ? 's' : ''}…` : 'Submitting…'}
+                        </div>
+                      ) : runResults.length > 0 ? (
+                        /* ── Per-case Run Results ── */
+                        <div>
+                          {/* Summary line */}
+                          <div style={{ marginBottom: 12 }}>
+                            {runResults.every((r) => r.passed) ? (
+                              <span className="result-accepted" style={{ fontSize: 18 }}>✓ All Test Cases Passed</span>
+                            ) : (
+                              <span className="result-wrong" style={{ fontSize: 18 }}>
+                                ✗ {runResults.filter((r) => r.passed).length}/{runResults.length} Test Cases Passed
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Per-case tabs */}
+                          <div className="testcase-tabs">
+                            {runResults.map((r, idx) => (
+                              <button
+                                key={idx}
+                                className={`testcase-tab ${activeResultCase === idx ? 'active' : ''}`}
+                                onClick={() => setActiveResultCase(idx)}
+                                style={{
+                                  borderLeft: `3px solid ${r.passed ? '#4ade80' : '#ef4444'}`,
+                                  color: activeResultCase === idx
+                                    ? '#e5e2e3'
+                                    : r.passed ? '#4ade80' : '#ef4444',
+                                }}
+                              >
+                                {r.passed ? '✓' : '✗'} Case {idx + 1}
+                              </button>
+                            ))}
+                          </div>
+
+                          {/* Selected case details */}
+                          {runResults[activeResultCase] && (() => {
+                            const r = runResults[activeResultCase];
+                            return (
+                              <div style={{ marginTop: 12 }}>
+                                <div className={getStatusClass(r.status)} style={{ fontSize: 16 }}>
+                                  {getStatusLabel(r.status)}
+                                </div>
+
+                                {/* Execution stats */}
+                                {(r.executionTimeMs != null || r.memoryUsageKb != null) && (
+                                  <div className="result-stats">
+                                    {r.executionTimeMs != null && (
+                                      <span>
+                                        <span className="material-symbols-outlined" style={{ fontSize: 14 }}>timer</span>
+                                        {r.executionTimeMs} ms
+                                      </span>
+                                    )}
+                                    {r.memoryUsageKb != null && (
+                                      <span>
+                                        <span className="material-symbols-outlined" style={{ fontSize: 14 }}>memory</span>
+                                        {(r.memoryUsageKb / 1024).toFixed(1)} MB
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+
+                                {/* Input */}
+                                {testCases[activeResultCase] && (
+                                  <div className="result-detail">
+                                    <div className="result-label">Input:</div>
+                                    <div className="result-value">{testCases[activeResultCase].input}</div>
+                                  </div>
+                                )}
+
+                                {/* Wrong answer: show expected vs actual */}
+                                {r.status === 'WRONG_ANSWER' && (
+                                  <div className="result-detail">
+                                    <div className="result-label">Expected Output:</div>
+                                    <div className="result-value">{r.expectedOutput}</div>
+                                    <div className="result-label">Your Output:</div>
+                                    <div className="result-value">{r.actualOutput}</div>
+                                  </div>
+                                )}
+
+                                {/* Accepted: show output */}
+                                {r.status === 'ACCEPTED' && r.stdout && (
+                                  <div className="result-detail">
+                                    <div className="result-label">Output:</div>
+                                    <div className="result-value">{r.stdout}</div>
+                                  </div>
+                                )}
+
+                                {/* Stderr */}
+                                {r.stderr && (
+                                  <div className="result-detail">
+                                    <div className="result-label">Error:</div>
+                                    <div className="result-value" style={{ color: '#ef4444' }}>{r.stderr}</div>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      ) : submitResult ? (
+                        /* ── Submit Result (single) ── */
+                        <div>
+                          <div className={getStatusClass(submitResult.status)} style={{ fontSize: 18 }}>
+                            {getStatusLabel(submitResult.status)}
+                          </div>
+                          {submitResult.stderr && (
+                            <div className="result-detail">
+                              <div className="result-label">Error:</div>
+                              <div className="result-value" style={{ color: '#ef4444' }}>{submitResult.stderr}</div>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div style={{ color: '#cac4d4', textAlign: 'center', paddingTop: 24, fontSize: 14 }}>
+                          Run your code to see results here.
+                        </div>
+                      )}
+                    </>
                   )}
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+                </div>
+              </Panel>
+            </PanelGroup>
+          </Panel>
+        </PanelGroup>
       </main>
     </div>
   );
