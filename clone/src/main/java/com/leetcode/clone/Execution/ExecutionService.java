@@ -220,11 +220,16 @@ public class ExecutionService {
                     .build();
         }
 
-        // Compare output
+        // Compare output — normalize whitespace so "[0, 1]" matches "[0,1]"
         String actualOutput = stdout.trim();
         String expected = expectedOutput != null ? expectedOutput.trim() : null;
 
-        boolean passed = expected != null && expected.equals(actualOutput);
+        // Normalize only structural whitespace (around commas, brackets)
+        // so "[0, 1]" matches "[0,1]" but "hello world" stays intact
+        String normalizedActual = normalizeStructural(actualOutput);
+        String normalizedExpected = expected != null ? normalizeStructural(expected) : null;
+
+        boolean passed = normalizedExpected != null && normalizedExpected.equals(normalizedActual);
         String status = expected == null ? "ACCEPTED"
                 : (passed ? "ACCEPTED" : "WRONG_ANSWER");
 
@@ -262,5 +267,24 @@ public class ExecutionService {
             }
         }
         dir.delete();
+    }
+
+    /**
+     * Normalize structural whitespace for output comparison.
+     * Strips spaces around commas, brackets, and braces so that
+     * Python's "[0, 1]" matches the stored "[0,1]", but preserves
+     * meaningful spaces inside strings like "hello world".
+     */
+    private String normalizeStructural(String s) {
+        if (s == null)
+            return null;
+        return s
+                .replaceAll("\\s*,\\s*", ",") // "0, 1" → "0,1"
+                .replaceAll("\\[\\s+", "[") // "[ 0" → "[0"
+                .replaceAll("\\s+]", "]") // "0 ]" → "0]"
+                .replaceAll("\\{\\s+", "{") // "{ 0" → "{0"
+                .replaceAll("\\s+}", "}") // "0 }" → "0}"
+                .replaceAll("\\(\\s+", "(") // "( 0" → "(0"
+                .replaceAll("\\s+\\)", ")"); // "0 )" → "0)"
     }
 }
