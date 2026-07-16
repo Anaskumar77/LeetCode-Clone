@@ -109,7 +109,8 @@ export const removeFavoriteAsync = createAsyncThunk(
 const initialState = {
   list: [],            // ProblemResponse[]
   selected: null,      // ProblemResponse | null  (single problem view)
-  favorites: [],       // problem id[]
+  favorites: [],       // problem id[] (for quick lookup)
+  favoritesData: [],   // FavoriteResponseDto[] (full objects for sidebar)
   filters: {
     search: '',
     difficulty: 'All',
@@ -194,7 +195,9 @@ const problemsSlice = createSlice({
     // ── fetchFavorites ─────────────────────────
     builder
       .addCase(fetchFavorites.fulfilled, (state, action) => {
-        // Extract just the problemId from each FavoriteResponseDto
+        // Store full objects for sidebar rendering
+        state.favoritesData = action.payload;
+        // Extract just the problemId for quick lookup
         state.favorites = action.payload.map((fav) => fav.problemId);
       });
 
@@ -204,6 +207,16 @@ const problemsSlice = createSlice({
         const id = action.payload;
         if (!state.favorites.includes(id)) {
           state.favorites.push(id);
+          // Also add to favoritesData with minimal info from the problem list
+          const problem = state.list.find((p) => p.id === id);
+          if (problem) {
+            state.favoritesData.push({
+              problemId: id,
+              problemTitle: problem.title,
+              problemSlug: problem.slug,
+              difficulty: problem.difficulty,
+            });
+          }
         }
       });
 
@@ -212,6 +225,7 @@ const problemsSlice = createSlice({
       .addCase(removeFavoriteAsync.fulfilled, (state, action) => {
         const id = action.payload;
         state.favorites = state.favorites.filter((fid) => fid !== id);
+        state.favoritesData = state.favoritesData.filter((fav) => fav.problemId !== id);
       });
   },
 });
