@@ -11,11 +11,14 @@ import com.leetcode.clone.Execution.dto.ExecutionResult;
 import java.io.*;
 import java.nio.file.*;
 import java.util.concurrent.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ExecutionService {
+
+    private static final Logger log = LoggerFactory.getLogger(ExecutionService.class);
 
     private final DriverCodeGenerator driverCodeGenerator;
 
@@ -156,6 +159,8 @@ public class ExecutionService {
 
         pb.redirectErrorStream(false);
 
+        log.info("Executing Code in Docker");
+
         long startTime = System.currentTimeMillis();
         Process process = pb.start();
 
@@ -207,6 +212,13 @@ public class ExecutionService {
 
         String stderr = cleanStderr.toString().trim();
         int exitCode = process.exitValue();
+
+        log.info("Execution Finished - Exit Code: {}, Time: {}ms, Memory: {}KB", exitCode, executionTime,
+                memoryUsageKb);
+        if (!stdout.isEmpty())
+            log.debug("STDOUT:\n{}", stdout);
+        if (!stderr.isEmpty())
+            log.error("STDERR:\n{}", stderr);
 
         // Runtime error
         if (exitCode != 0) {
