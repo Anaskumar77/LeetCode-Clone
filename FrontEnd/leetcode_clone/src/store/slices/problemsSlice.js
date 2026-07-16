@@ -167,6 +167,7 @@ const problemsSlice = createSlice({
       })
       .addCase(fetchProblems.fulfilled, (state, action) => {
         state.loading = false;
+        console.log(action.payload)
         state.list = action.payload;   // replace list with fresh page
       })
       .addCase(fetchProblems.rejected, (state, action) => {

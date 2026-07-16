@@ -44,10 +44,15 @@ export default function SolveProblem() {
 
   // ── Pre-fill starter code ──────────────────────
   useEffect(() => {
-    if (problem?.starterCode && !code) {
+    if (problem?.starterCode) {
       setCode(problem.starterCode);
     }
-  }, [problem]);
+    // Reset run/submit results when switching problems
+    setRunResults([]);
+    setSubmitResult(null);
+    setActiveResultCase(0);
+    setConsoleTab('testcase');
+  }, [problem?.id]);
 
   // ── Run Code (all visible test cases) ───────────
   const handleRun = async () => {

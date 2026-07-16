@@ -49,11 +49,11 @@ public class ExecutionService {
             }
 
             // 2. Resolve driver code:
-            //    Priority 1: Manual driverCode on request (override)
-            //    Priority 2: Auto-generate from function signature
-            //    Priority 3: Raw stdin/stdout mode (no driver code)
+            // Priority 1: Manual driverCode on request (override)
+            // Priority 2: Auto-generate from function signature
+            // Priority 3: Raw stdin/stdout mode (no driver code)
             String resolvedDriverImports = request.getDriverImports();
-            String resolvedDriverCode    = request.getDriverCode();
+            String resolvedDriverCode = request.getDriverCode();
 
             if ((resolvedDriverCode == null || resolvedDriverCode.isBlank())
                     && request.getFunctionName() != null && !request.getFunctionName().isBlank()
@@ -64,7 +64,7 @@ public class ExecutionService {
                         request.getParams(),
                         request.getReturnType());
                 resolvedDriverImports = generated.driverImports;
-                resolvedDriverCode    = generated.driverCode;
+                resolvedDriverCode = generated.driverCode;
             }
 
             // 3. Assemble script.py: driverImports + user code + driverCode

@@ -140,10 +140,26 @@ public class AuthService {
             String newRefreshToken = jwtService.generateRefreshToken(userDetails);
             setRefreshTokenCookie(response, newRefreshToken);
 
+            // Build user profile for the frontend
+            UserEntity userEntity = userRepo.findByEmail(email).orElse(null);
+            ResponseUserDto userDto = null;
+            if (userEntity != null) {
+                userDto = ResponseUserDto.builder()
+                        .id(userEntity.getId())
+                        .email(userEntity.getEmail())
+                        .name(userEntity.getName())
+                        .role(userEntity.getRole())
+                        .imgUrl(userEntity.getImgUrl())
+                        .createdAt(userEntity.getCreatedAt())
+                        .updatedAt(userEntity.getUpdatedAt())
+                        .build();
+            }
+
             return RefreshTokenResponseDto.builder()
                     .success(true)
                     .message(RegisterStatus.REFRESH_TOKEN_SUCCESS)
                     .accessToken(accessToken)
+                    .user(userDto)
                     .build();
         } catch (Exception e) {
             return failedRefresh(response);

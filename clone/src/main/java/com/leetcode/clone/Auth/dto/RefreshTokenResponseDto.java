@@ -17,4 +17,6 @@ public class RefreshTokenResponseDto {
 
     private String accessToken;
 
+    private ResponseUserDto user;
+
 }

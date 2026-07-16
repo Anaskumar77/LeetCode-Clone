@@ -47,6 +47,7 @@ public class SecurityConfig {
                         // Public routes
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/problems/**").permitAll()
+                        .requestMatchers("/api/execute").permitAll()
                         // Protected routes
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())

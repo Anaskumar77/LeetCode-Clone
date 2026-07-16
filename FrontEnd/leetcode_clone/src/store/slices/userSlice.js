@@ -22,7 +22,11 @@ export const registerUser = createAsyncThunk(
         const text = await response.text().catch(() => 'Registration failed');
         return rejectWithValue(text || 'Registration failed');
       }
-      return response.json();
+      const data = await response.json();
+      if (data.success === false) {
+        return rejectWithValue(data.message || 'Registration failed');
+      }
+      return data;
     } catch (err) {
       return rejectWithValue(err.message ?? 'Registration failed');
     }
@@ -47,7 +51,11 @@ export const loginUser = createAsyncThunk(
         const text = await response.text().catch(() => 'Login failed');
         return rejectWithValue(text || 'Login failed');
       }
-      return response.json();
+      const data = await response.json();
+      if (data.success === false) {
+        return rejectWithValue(data.message || 'Login failed');
+      }
+      return data;
     } catch (err) {
       return rejectWithValue(err.message ?? 'Login failed');
     }
@@ -84,7 +92,12 @@ export const refreshAccessToken = createAsyncThunk(
  */
 export const initializeAuth = createAsyncThunk(
   'auth/initialize',
-  async (_, { dispatch }) => {
+  async (_, { dispatch, getState }) => {
+    // If the user is already logged in (e.g. just did a login), skip the refresh call
+    const state = getState();
+    if (state.user.isLoggedIn && state.user.accessToken) {
+      return { accessToken: state.user.accessToken, user: state.user.profile };
+    }
     try {
       const result = await dispatch(refreshAccessToken()).unwrap();
       return result;
@@ -104,6 +117,7 @@ const initialState = {
   solvedIds: [],
   attemptedIds: [],
   isLoggedIn: false,
+  isInitialized: false,
   loading: false,
   error: null,
 };
@@ -190,9 +204,18 @@ const userSlice = createSlice({
         }
       })
       .addCase(refreshAccessToken.rejected, (state) => {
-        state.accessToken = null;
-        state.profile = null;
-        state.isLoggedIn = false;
+        // Only clear login state if we were NOT already logged in via credentials.
+        // This prevents a failed refresh from wiping a just-completed login.
+        if (!state.profile) {
+          state.accessToken = null;
+          state.isLoggedIn = false;
+        }
+      })
+      .addCase(initializeAuth.fulfilled, (state) => {
+        state.isInitialized = true;
+      })
+      .addCase(initializeAuth.rejected, (state) => {
+        state.isInitialized = true;
       });
   },
 });
