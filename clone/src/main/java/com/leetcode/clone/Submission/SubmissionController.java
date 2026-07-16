@@ -17,8 +17,12 @@ public class SubmissionController {
     private final SubmissionService submissionService;
 
     @PostMapping("/")
-    public String Submission(@RequestBody SubmissionDto submissionDto) {
-        return submissionService.submit(submissionDto);
+    public java.util.Map<String, Object> Submission(@RequestBody SubmissionDto submissionDto) {
+        String status = submissionService.submit(submissionDto);
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        response.put("status", status);
+        response.put("passed", "All test cases passed!".equals(status));
+        return response;
     }
 
 }

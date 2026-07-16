@@ -102,12 +102,17 @@ export default function SolveProblem() {
     setRunResults([]);
     setSubmitResult(null);
 
+    console.log("hello")
     try {
       const result = await api.post('/submission/', {
         problemId: problem.id,
         sourceCode: code,
         languageId: 1, // Python
       });
+
+      console.log("hello 2")
+
+      console.log(`submission response : ${result}`)
       // The submission endpoint returns a String status; wrap it
       if (typeof result === 'string') {
         setSubmitResult({ status: result, passed: result === 'ACCEPTED' });
