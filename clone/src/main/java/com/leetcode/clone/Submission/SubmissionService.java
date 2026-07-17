@@ -16,6 +16,14 @@ import com.leetcode.clone.Problem.models.ProblemEntity;
 import com.leetcode.clone.Problem.models.TestCase;
 import com.leetcode.clone.Problem.repository.ProblemRepository;
 import com.leetcode.clone.Submission.dto.SubmissionDto;
+import com.leetcode.clone.Submission.dto.DailyActivityDto;
+import com.leetcode.clone.Submission.dto.CalendarResponseDto;
+import com.leetcode.clone.Submission.repository.SubmissionRepository;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.UUID;
+import java.time.format.DateTimeFormatter;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,6 +33,7 @@ public class SubmissionService {
 
     private final ExecutionService executionService;
     private final ProblemRepository problemRepository;
+    private final SubmissionRepository submissionRepository;
     private final ObjectMapper objectMapper;
 
     @Transactional
@@ -72,4 +81,54 @@ public class SubmissionService {
         return "All test cases passed!";
     }
 
+    public CalendarResponseDto getCalendarData(UUID userId, int year) {
+        List<Object[]> rawData = submissionRepository.findActivityCalendarByUserIdAndYear(userId, year);
+        List<DailyActivityDto> days = new ArrayList<>();
+        
+        int currentStreak = 0;
+        int maxStreak = 0;
+        int totalSubmissions = 0;
+        
+        LocalDate prevDate = null;
+        int tempStreak = 0;
+
+        for (Object[] row : rawData) {
+            String dateStr = (String) row[0];
+            int count = ((Number) row[1]).intValue();
+            
+            days.add(new DailyActivityDto(dateStr, count));
+            totalSubmissions += count;
+            
+            LocalDate currDate = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+            
+            if (prevDate == null) {
+                tempStreak = 1;
+            } else {
+                if (prevDate.plusDays(1).equals(currDate)) {
+                    tempStreak++;
+                } else if (!prevDate.equals(currDate)) {
+                    tempStreak = 1; // reset if gap
+                }
+            }
+            if (tempStreak > maxStreak) {
+                maxStreak = tempStreak;
+            }
+            prevDate = currDate;
+        }
+        
+        // Calculate current streak (if last submission was today or yesterday)
+        if (prevDate != null) {
+            LocalDate today = LocalDate.now();
+            if (prevDate.equals(today) || prevDate.equals(today.minusDays(1))) {
+                currentStreak = tempStreak;
+            }
+        }
+        
+        return CalendarResponseDto.builder()
+                .days(days)
+                .currentStreak(currentStreak)
+                .maxStreak(maxStreak)
+                .totalSubmissions(totalSubmissions)
+                .build();
+    }
 }

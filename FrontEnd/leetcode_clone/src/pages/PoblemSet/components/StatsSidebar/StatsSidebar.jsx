@@ -3,8 +3,29 @@ import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import ForumIcon from '@mui/icons-material/Forum';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ChatBubbleIcon from '@mui/icons-material/ChatBubble';
+import { useState, useEffect } from 'react';
+import ActivityHeatmap from '../../../../components/ActivityHeatmap/ActivityHeatmap';
 
 export default function StatsSidebar() {
+  const [calendarData, setCalendarData] = useState([]);
+  const [currentStreak, setCurrentStreak] = useState(14); // dummy fallback
+
+  useEffect(() => {
+    // Fetch data for the streak calendar. Using a dummy UUID for now.
+    const dummyUserId = '00000000-0000-0000-0000-000000000000';
+    fetch(`/api/submission/calendar/${dummyUserId}`)
+      .then(res => {
+         if (res.ok) return res.json();
+         throw new Error("Failed to fetch");
+      })
+      .then(data => {
+        if (data && data.days) {
+          setCalendarData(data.days);
+          setCurrentStreak(data.currentStreak);
+        }
+      })
+      .catch(err => console.error("Error fetching calendar data:", err));
+  }, []);
   return (
     <div className="lg:col-span-4 flex flex-col gap-6">
       {/* Profile / Progress Card */}
@@ -68,40 +89,11 @@ export default function StatsSidebar() {
           </h3>
           <div className="bg-surface-variant px-3 py-1 rounded-full border border-white/10 flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-            <span className="font-label-sm text-label-sm text-primary font-bold">14 Days</span>
+            <span className="font-label-sm text-label-sm text-primary font-bold">{currentStreak} Days</span>
           </div>
         </div>
         {/* Minimalist Calendar Heatmap Representation */}
-        <div className="grid grid-cols-7 gap-1.5 mt-2">
-          <div className="text-center font-label-sm text-[10px] text-on-surface-variant mb-1">S</div>
-          <div className="text-center font-label-sm text-[10px] text-on-surface-variant mb-1">M</div>
-          <div className="text-center font-label-sm text-[10px] text-on-surface-variant mb-1">T</div>
-          <div className="text-center font-label-sm text-[10px] text-on-surface-variant mb-1">W</div>
-          <div className="text-center font-label-sm text-[10px] text-on-surface-variant mb-1">T</div>
-          <div className="text-center font-label-sm text-[10px] text-on-surface-variant mb-1">F</div>
-          <div className="text-center font-label-sm text-[10px] text-on-surface-variant mb-1">S</div>
-          <div className="aspect-square bg-surface-variant/40 flex items-center justify-center text-[10px] text-on-surface-variant rounded-full">1</div>
-          <div className="aspect-square bg-surface-variant/40 flex items-center justify-center text-[10px] text-on-surface-variant rounded-full">2</div>
-          <div className="aspect-square bg-primary/20 flex items-center justify-center text-[10px] text-primary rounded-full">3</div>
-          <div className="aspect-square bg-primary/40 flex items-center justify-center text-[10px] text-primary rounded-full">4</div>
-          <div className="aspect-square bg-primary/80 flex items-center justify-center text-[10px] text-background rounded-full">5</div>
-          <div className="aspect-square bg-surface-variant/40 flex items-center justify-center text-[10px] text-on-surface-variant rounded-full">6</div>
-          <div className="aspect-square bg-surface-variant/40 flex items-center justify-center text-[10px] text-on-surface-variant rounded-full">7</div>
-          <div className="aspect-square bg-surface-variant/40 flex items-center justify-center text-[10px] text-on-surface-variant rounded-full">8</div>
-          <div className="aspect-square bg-primary/60 flex items-center justify-center text-[10px] text-background rounded-full">9</div>
-          <div className="aspect-square bg-primary flex items-center justify-center text-[10px] text-background font-bold rounded-full">10</div>
-          <div className="aspect-square bg-primary/40 flex items-center justify-center text-[10px] text-primary rounded-full">11</div>
-          <div className="aspect-square bg-primary/20 flex items-center justify-center text-[10px] text-primary rounded-full">12</div>
-          <div className="aspect-square bg-surface-variant/40 flex items-center justify-center text-[10px] text-on-surface-variant rounded-full">13</div>
-          <div className="aspect-square bg-surface-variant/40 flex items-center justify-center text-[10px] text-on-surface-variant rounded-full">14</div>
-          <div className="aspect-square bg-primary/40 flex items-center justify-center text-[10px] text-primary rounded-full">15</div>
-          <div className="aspect-square bg-primary/80 flex items-center justify-center text-[10px] text-background rounded-full">16</div>
-          <div className="aspect-square bg-primary shadow-[0_0_8px_rgba(206,189,255,0.5)] border border-primary flex items-center justify-center text-[10px] text-background font-bold rounded-full">17</div>
-          <div className="aspect-square bg-surface-variant/20 border border-dashed border-white/10 flex items-center justify-center text-[10px] text-on-surface-variant/30 rounded-full">18</div>
-          <div className="aspect-square bg-surface-variant/20 border border-dashed border-white/10 flex items-center justify-center text-[10px] text-on-surface-variant/30 rounded-full">19</div>
-          <div className="aspect-square bg-surface-variant/20 border border-dashed border-white/10 flex items-center justify-center text-[10px] text-on-surface-variant/30 rounded-full">20</div>
-          <div className="aspect-square bg-surface-variant/20 border border-dashed border-white/10 flex items-center justify-center text-[10px] text-on-surface-variant/30 rounded-full">21</div>
-        </div>
+        <ActivityHeatmap days={21} data={calendarData} />
       </div>
       {/* Discussion Highlights */}
       <div className="glass-panel rounded-DEFAULT p-6 border border-white/5 shadow-md flex-1">
